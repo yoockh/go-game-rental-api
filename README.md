@@ -2,7 +2,7 @@
 
 ## Overview
 Video Game Rental API adalah sistem backend berbasis Golang (Echo Framework) untuk platform penyewaan game fisik seperti kaset dan console.  
-Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer), serta fitur KYC, sistem pembayaran, review, dan approval flow.
+Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer), serta fitur sistem pembayaran, review, dan approval flow.
 
 ---
 
@@ -33,25 +33,21 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 
 ### User
 - View & Edit Profile
-- KYC Upload
-- Deposit / Wallet Management
 
 ### Partner
-- Apply for Partner (KYC + Verification)
+- Apply for Partner (Simple application form)
 - Manage Own Listings (CRUD Game)
 - View Bookings & Payments related to their listings
 
 ### Admin
-- Approve or Reject KYC Applications
+- Approve or Reject Partner Applications
 - Approve or Reject Listings
 - Manage Users
 - Handle Disputes
-- View Reports
 
 ### Super Admin
 - Full system ownership
 - Manage Admins
-- Manage global settings
 - Emergency access
 
 ### Catalog
@@ -63,14 +59,9 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 - Create Booking (pending → paid → confirmed → completed)
 - Integrate with Payment Gateway (Stripe / Midtrans)
 - Webhook Handling for Payment Confirmation
-- Refund & Cancellation Logic
 
 ### Review
 - CRUD Review untuk rental yang sudah selesai
-
-### Reporting & Audit
-- Log every admin action (admin_logs)
-- Generate reports for financial and operational analysis
 
 ---
 
@@ -78,11 +69,10 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 
 ### Partner Onboarding Flow
 1. User register → role: `customer`
-2. Customer uploads KYC documents via `/users/kyc/upload`
-3. Customer submits partner application via `/partner/apply`
-4. Admin reviews KYC via `/admin/kyc/:id/approve`
-5. If approved → user.role = `partner`
-6. Partner can now create game listings
+2. Customer submits partner application via `/partner/apply` (simple form with business info)
+3. Admin reviews application via `/admin/partner-applications/:id/approve`
+4. If approved → user.role = `partner`
+5. Partner can now create game listings
 
 ### Game Listing Flow
 1. Partner creates game listing via `/partner/games`
@@ -107,21 +97,15 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 ---
 
 ## Entity Relationship Diagram (ERD) - Summary
-- users (id, email, password_hash, role, deposit, is_active, created_at, updated_at)
-- roles (id, name, permissions)
-- partner_applications (id, user_id, status, kyc_doc_id, submitted_at, decided_by, decided_at, rejection_reason)
-- games (id, partner_id, name, category_id, stock, rental_price, description, is_active, approved_by_admin, approval_status, created_at)
-- categories (id, name, description)
-- bookings (id, user_id, game_id, partner_id, start_at, end_at, total_price, status, created_at, updated_at)
-- payments (id, booking_id, provider, provider_payment_id, amount, status, paid_at, refunded_at)
-- reviews (id, booking_id, user_id, game_id, rating, comment, created_at)
-- rental_history (id, booking_id, user_id, game_snapshot, price, start_at, end_at, returned_at)
-- wallets (id, user_id, balance, created_at, updated_at)
-- wallet_transactions (id, wallet_id, type, amount, description, reference_id, created_at)
-- kyc_documents (id, user_id, doc_type, url, status, uploaded_at, verified_at)
-- disputes (id, booking_id, reporter_id, type, description, status, resolution, created_at, resolved_at)
-- admin_logs (id, admin_id, action, target_type, target_id, metadata, created_at)
-- system_settings (id, key, value, description, updated_by, updated_at)
+- users (id, email, password_hash, full_name, phone, address, role, is_active, created_at, updated_at)
+- categories (id, name, description, is_active, created_at)
+- partner_applications (id, user_id, business_name, business_address, business_phone, business_description, status, rejection_reason, submitted_at, decided_at, decided_by)
+- games (id, partner_id, category_id, name, description, platform, stock, available_stock, rental_price_per_day, security_deposit, condition, images, is_active, approval_status, approved_by, approved_at, rejection_reason, created_at, updated_at)
+- bookings (id, user_id, game_id, partner_id, start_date, end_date, rental_days, daily_price, total_rental_price, security_deposit, total_amount, status, notes, handover_confirmed_at, return_confirmed_at, created_at, updated_at)
+- payments (id, booking_id, provider, provider_payment_id, amount, status, payment_method, paid_at, failed_at, failure_reason, created_at)
+- reviews (id, booking_id, user_id, game_id, rating, comment, created_at, updated_at)
+- disputes (id, booking_id, reporter_id, type, title, description, status, resolution, resolved_by, created_at, resolved_at)
+- refresh_tokens (id, user_id, token_hash, expires_at, is_revoked, created_at)
 
 ---
 
@@ -134,7 +118,7 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 |  | POST | /auth/refresh | Refresh token |
 | **Users** | GET | /users/me | Get current user profile |
 |  | PUT | /users/me | Update profile |
-| **Partner** | POST | /partner/apply | Submit partner application (KYC) |
+| **Partner** | POST | /partner/apply | Submit partner application |
 |  | GET | /partner/applications | Get all partner applications *(admin only)* |
 |  | PATCH | /partner/applications/:id/approve | Approve or reject partner *(admin)* |
 | **Games** | GET | /games | Get all games |
@@ -149,23 +133,14 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 | **Reviews** | POST | /bookings/:id/review | Add review after completed booking |
 | **Admin** | GET | /admin/users | View all users |
 |  | PATCH | /admin/users/:id/ban | Ban / unban user |
-|  | GET | /admin/kyc | View pending KYC submissions |
-|  | PATCH | /admin/kyc/:id/approve | Approve / reject KYC |
+|  | GET | /admin/partner-applications | View pending partner applications |
+|  | PATCH | /admin/partner-applications/:id/approve | Approve / reject partner application |
 |  | GET | /admin/listings | View pending listings |
 |  | PATCH | /admin/listings/:id/approve | Approve / reject listing |
 |  | GET | /admin/disputes | Handle dispute cases |
-|  | GET | /admin/reports | View financial / system reports |
 | **Superadmin** | GET | /superadmin/admins | View all admins |
 |  | POST | /superadmin/admins | Create new admin |
 |  | DELETE | /superadmin/admins/:id | Remove admin |
-|  | GET | /superadmin/system/logs | View system logs & audit trail |
-|  | PATCH | /superadmin/system/settings | Update global system settings |
-|  | POST | /superadmin/system/emergency | Trigger emergency system recovery |
-| **KYC** | POST | /users/kyc/upload | Upload KYC documents |
-|  | GET | /users/kyc/status | Check KYC status |
-| **Wallet** | GET | /wallet/balance | Get wallet balance |
-|  | POST | /wallet/deposit | Add funds to wallet |
-|  | GET | /wallet/transactions | Get transaction history |
 | **Disputes** | POST | /disputes/create | Report dispute |
 |  | GET | /disputes/my | Get user's disputes |
 | **Partner Dashboard** | GET | /partner/dashboard | Partner analytics |
@@ -192,9 +167,9 @@ Authorization: Bearer <jwt_token>
 ```
 
 ### Role-Based Access Control (RBAC)
-- **Customer**: Can book games, manage profile, wallet operations
+- **Customer**: Can book games, manage profile
 - **Partner**: Customer permissions + manage game listings, view bookings
-- **Admin**: Partner permissions + approve KYC/listings, handle disputes
+- **Admin**: Partner permissions + approve applications/listings, handle disputes
 - **Super Admin**: Full system access + manage admins
 
 ---
@@ -221,11 +196,10 @@ Authorization: Bearer <jwt_token>
 - `failed` - Payment failed
 - `refunded` - Payment refunded
 
-### KYC Status
-- `pending` - Documents uploaded, awaiting review
-- `approved` - KYC verified
-- `rejected` - KYC rejected
-- `resubmission_required` - Need additional documents
+### Application Status
+- `pending` - Partner application submitted, awaiting review
+- `approved` - Application approved
+- `rejected` - Application rejected
 
 ---
 
@@ -275,5 +249,5 @@ Authorization: Bearer <jwt_token>
    ```
 
 ---
-## Constributor
+## Contributor
 Aisiya Qutwatunnada (Yoochan45)

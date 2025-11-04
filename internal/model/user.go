@@ -1,0 +1,51 @@
+package model
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type UserRole string
+
+const (
+	RoleCustomer   UserRole = "customer"
+	RolePartner    UserRole = "partner"
+	RoleAdmin      UserRole = "admin"
+	RoleSuperAdmin UserRole = "super_admin"
+)
+
+type User struct {
+	ID           uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Email        string         `gorm:"uniqueIndex;not null" json:"email" validate:"required,email"`
+	PasswordHash string         `gorm:"not null" json:"-"`
+	FullName     string         `gorm:"not null" json:"full_name" validate:"required"`
+	Phone        *string        `json:"phone,omitempty"`
+	Address      *string        `json:"address,omitempty"`
+	Role         UserRole       `gorm:"type:user_role;default:customer" json:"role"`
+	IsActive     bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relationships
+	PartnerApplications []PartnerApplication `gorm:"foreignKey:UserID" json:"-"`
+	Games               []Game               `gorm:"foreignKey:PartnerID" json:"-"`
+	Bookings            []Booking            `gorm:"foreignKey:UserID" json:"-"`
+	Reviews             []Review             `gorm:"foreignKey:UserID" json:"-"`
+	Disputes            []Dispute            `gorm:"foreignKey:ReporterID" json:"-"`
+	RefreshTokens       []RefreshToken       `gorm:"foreignKey:UserID" json:"-"`
+}
+
+func (User) TableName() string {
+	return "users"
+}
+
+// BeforeCreate sets UUID if not provided
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	if u.ID == uuid.Nil {
+		u.ID = uuid.New()
+	}
+	return nil
+}

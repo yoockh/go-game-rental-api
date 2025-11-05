@@ -21,7 +21,7 @@ func NewAdminHandler(partnerService service.PartnerApplicationService, gameServi
 	return &AdminHandler{
 		partnerService: partnerService,
 		gameService:    gameService,
-		validate:       validator.New(),
+		validate:       utils.GetValidator(),
 	}
 }
 

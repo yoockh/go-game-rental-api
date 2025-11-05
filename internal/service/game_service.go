@@ -16,6 +16,7 @@ var (
 
 type GameService interface {
 	// Public methods (customer)
+	GetPublicGames(limit, offset int) ([]*model.Game, error)
 	SearchGames(query string, limit, offset int) ([]*model.Game, error)
 	GetGameDetail(gameID uint) (*model.Game, error)
 
@@ -42,6 +43,10 @@ func NewGameService(gameRepo repository.GameRepository, userRepo repository.User
 }
 
 // Public methods (customer)
+func (s *gameService) GetPublicGames(limit, offset int) ([]*model.Game, error) {
+	return s.gameRepo.GetApprovedGames(limit, offset)
+}
+
 func (s *gameService) SearchGames(query string, limit, offset int) ([]*model.Game, error) {
 	return s.gameRepo.SearchGames(query, limit, offset)
 }

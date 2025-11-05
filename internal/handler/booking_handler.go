@@ -20,7 +20,7 @@ type BookingHandler struct {
 func NewBookingHandler(bookingService service.BookingService) *BookingHandler {
 	return &BookingHandler{
 		bookingService: bookingService,
-		validate:       validator.New(),
+		validate:       utils.GetValidator(),
 	}
 }
 
@@ -152,7 +152,16 @@ func (h *BookingHandler) CancelBooking(c echo.Context) error {
 
 	err := h.bookingService.CancelBooking(userID, bookingID)
 	if err != nil {
-		return myResponse.BadRequest(c, err.Error())
+		switch err {
+		case service.ErrBookingNotFound:
+			return myResponse.NotFound(c, err.Error())
+		case service.ErrBookingNotOwned:
+			return myResponse.Forbidden(c, err.Error())
+		case service.ErrBookingCannotCancel:
+			return myResponse.BadRequest(c, err.Error()) // 409 would be better but keeping 400
+		default:
+			return myResponse.BadRequest(c, err.Error())
+		}
 	}
 
 	return myResponse.Success(c, "Booking cancelled successfully", nil)

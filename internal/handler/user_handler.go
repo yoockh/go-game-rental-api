@@ -20,7 +20,7 @@ type UserHandler struct {
 func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
-		validate:    validator.New(),
+		validate:    utils.GetValidator(),
 	}
 }
 

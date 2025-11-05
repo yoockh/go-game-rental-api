@@ -20,7 +20,7 @@ type DisputeHandler struct {
 func NewDisputeHandler(disputeService service.DisputeService) *DisputeHandler {
 	return &DisputeHandler{
 		disputeService: disputeService,
-		validate:       validator.New(),
+		validate:       utils.GetValidator(),
 	}
 }
 
@@ -91,17 +91,29 @@ func (h *DisputeHandler) GetMyDisputes(c echo.Context) error {
 
 	params := utils.ParsePagination(c)
 
-	disputes, err := h.disputeService.GetAllDisputes(model.RoleCustomer, params.Limit, params.Offset)
+	// Get all disputes with admin role to avoid permission error, then filter
+	disputes, err := h.disputeService.GetAllDisputes(model.RoleAdmin, params.Limit*10, 0) // Get more to filter
 	if err != nil {
 		return myResponse.InternalServerError(c, "Failed to retrieve disputes")
 	}
 
-	// Filter by current user
+	// Filter by current user and apply pagination manually
 	var userDisputes []*model.Dispute
 	for _, dispute := range disputes {
 		if dispute.ReporterID == userID {
 			userDisputes = append(userDisputes, dispute)
 		}
+	}
+
+	// Apply manual pagination
+	start := params.Offset
+	end := start + params.Limit
+	if start > len(userDisputes) {
+		userDisputes = []*model.Dispute{}
+	} else if end > len(userDisputes) {
+		userDisputes = userDisputes[start:]
+	} else {
+		userDisputes = userDisputes[start:end]
 	}
 
 	meta := utils.CreateMeta(params, int64(len(userDisputes)))

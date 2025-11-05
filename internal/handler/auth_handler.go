@@ -4,6 +4,7 @@ import (
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
+	"github.com/Yoochan45/go-game-rental-api/internal/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -19,7 +20,7 @@ func NewAuthHandler(userService service.UserService, jwtSecret string) *AuthHand
 	return &AuthHandler{
 		userService: userService,
 		jwtSecret:   jwtSecret,
-		validate:    validator.New(),
+		validate:    utils.GetValidator(),
 	}
 }
 

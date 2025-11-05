@@ -20,7 +20,7 @@ type PaymentHandler struct {
 func NewPaymentHandler(paymentService service.PaymentService) *PaymentHandler {
 	return &PaymentHandler{
 		paymentService: paymentService,
-		validate:       validator.New(),
+		validate:       utils.GetValidator(),
 	}
 }
 

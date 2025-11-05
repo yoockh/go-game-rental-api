@@ -20,7 +20,7 @@ type ReviewHandler struct {
 func NewReviewHandler(reviewService service.ReviewService) *ReviewHandler {
 	return &ReviewHandler{
 		reviewService: reviewService,
-		validate:      validator.New(),
+		validate:      utils.GetValidator(),
 	}
 }
 

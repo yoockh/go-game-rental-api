@@ -21,7 +21,7 @@ type GameHandler struct {
 func NewGameHandler(gameService service.GameService) *GameHandler {
 	return &GameHandler{
 		gameService: gameService,
-		validate:    validator.New(),
+		validate:    utils.GetValidator(),
 	}
 }
 
@@ -39,7 +39,7 @@ func NewGameHandler(gameService service.GameService) *GameHandler {
 func (h *GameHandler) GetAllGames(c echo.Context) error {
 	params := utils.ParsePagination(c)
 
-	games, err := h.gameService.GetAllGames(model.RoleCustomer, params.Limit, params.Offset)
+	games, err := h.gameService.GetPublicGames(params.Limit, params.Offset)
 	if err != nil {
 		return myResponse.InternalServerError(c, "Failed to retrieve games")
 	}

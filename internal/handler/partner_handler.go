@@ -22,7 +22,7 @@ func NewPartnerHandler(partnerService service.PartnerApplicationService, booking
 	return &PartnerHandler{
 		partnerService: partnerService,
 		bookingService: bookingService,
-		validate:       validator.New(),
+		validate:       utils.GetValidator(),
 	}
 }
 
@@ -123,7 +123,16 @@ func (h *PartnerHandler) ConfirmHandover(c echo.Context) error {
 
 	err := h.bookingService.ConfirmHandover(userID, bookingID)
 	if err != nil {
-		return myResponse.BadRequest(c, err.Error())
+		switch err {
+		case service.ErrBookingNotFound:
+			return myResponse.NotFound(c, err.Error())
+		case service.ErrBookingNotOwned:
+			return myResponse.Forbidden(c, err.Error())
+		case service.ErrBookingCannotConfirm:
+			return myResponse.BadRequest(c, err.Error())
+		default:
+			return myResponse.BadRequest(c, err.Error())
+		}
 	}
 
 	return myResponse.Success(c, "Handover confirmed successfully", nil)
@@ -155,7 +164,16 @@ func (h *PartnerHandler) ConfirmReturn(c echo.Context) error {
 
 	err := h.bookingService.ConfirmReturn(userID, bookingID)
 	if err != nil {
-		return myResponse.BadRequest(c, err.Error())
+		switch err {
+		case service.ErrBookingNotFound:
+			return myResponse.NotFound(c, err.Error())
+		case service.ErrBookingNotOwned:
+			return myResponse.Forbidden(c, err.Error())
+		case service.ErrBookingCannotConfirm:
+			return myResponse.BadRequest(c, err.Error())
+		default:
+			return myResponse.BadRequest(c, err.Error())
+		}
 	}
 
 	return myResponse.Success(c, "Return confirmed successfully", nil)

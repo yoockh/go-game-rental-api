@@ -26,7 +26,9 @@ import (
 	myOrm "github.com/Yoochan45/go-api-utils/pkg-echo/orm"
 	myConfig "github.com/Yoochan45/go-api-utils/pkg/config"
 	"github.com/Yoochan45/go-game-rental-api/app/echo-server/router"
+	_ "github.com/Yoochan45/go-game-rental-api/docs"
 	"github.com/Yoochan45/go-game-rental-api/internal/handler"
+	"github.com/Yoochan45/go-game-rental-api/internal/integration"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
@@ -34,7 +36,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	echoSwagger "github.com/swaggo/echo-swagger"
-	_ "github.com/Yoochan45/go-game-rental-api/docs"
 )
 
 func main() {
@@ -47,6 +48,12 @@ func main() {
 	if JwtSecret == "" {
 		JwtSecret = "dev-secret"
 		logrus.Warn("Using default JWT secret for development")
+	}
+
+	// Validate integration environment variables
+	if err := integration.Validate(); err != nil {
+		logrus.Warn("Integration validation failed:", err)
+		logrus.Warn("Some 3rd party features may not work properly")
 	}
 
 	db, err := myOrm.Init(cfg.DatabaseURL)

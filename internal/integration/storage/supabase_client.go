@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -44,37 +45,54 @@ func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath 
 	if s.baseURL == "" || s.apiKey == "" || s.bucket == "" {
 		return "", fmt.Errorf("supabase storage not configured")
 	}
+	if len(data) == 0 {
+		return "", fmt.Errorf("empty data provided")
+	}
 
 	putURL := fmt.Sprintf("%s/storage/v1/object/%s/%s", s.baseURL, s.bucket, destinationPath)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, putURL, io.NopCloser(bytesReader(data)))
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
-	}
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("apiKey", s.apiKey)
-	req.Header.Set("Authorization", "Bearer "+s.apiKey)
-	req.Header.Set("x-upsert", "true") // overwrite if exists
+	var lastErr error
+	for attempt := 1; attempt <= 3; attempt++ {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPut, putURL, bytes.NewReader(data))
+		if err != nil {
+			return "", fmt.Errorf("failed to create request: %w", err)
+		}
+		if contentType == "" {
+			contentType = "application/octet-stream"
+		}
+		req.Header.Set("Content-Type", contentType)
+		req.Header.Set("apiKey", s.apiKey)
+		req.Header.Set("Authorization", "Bearer "+s.apiKey)
+		req.Header.Set("x-upsert", "true")
 
-	resp, err := s.client.Do(req)
-	if err != nil {
-		log.Printf("ERROR: Supabase upload failed for %s: %v", destinationPath, err)
-		return "", fmt.Errorf("upload request failed: %w", err)
-	}
-	defer resp.Body.Close()
+		resp, err := s.client.Do(req)
+		if err != nil {
+			lastErr = err
+			if attempt < 3 {
+				time.Sleep(time.Duration(attempt) * time.Second)
+				continue
+			}
+			log.Printf("ERROR: Supabase upload failed for %s after %d attempts: %v", destinationPath, attempt, err)
+			return "", fmt.Errorf("upload request failed: %w", err)
+		}
+		defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(resp.Body)
-		log.Printf("ERROR: Supabase upload error %d: %s", resp.StatusCode, string(body))
-		return "", fmt.Errorf("upload failed: status=%d body=%s", resp.StatusCode, string(body))
-	}
+		if resp.StatusCode >= 400 {
+			body, _ := io.ReadAll(resp.Body)
+			lastErr = fmt.Errorf("status=%d body=%s", resp.StatusCode, string(body))
+			if attempt < 3 {
+				time.Sleep(time.Duration(attempt) * time.Second)
+				continue
+			}
+			log.Printf("ERROR: Supabase upload error %d: %s", resp.StatusCode, string(body))
+			return "", fmt.Errorf("upload failed: %w", lastErr)
+		}
 
-	fullPublicURL := fmt.Sprintf("%s/%s", s.publicURL, destinationPath)
-	log.Printf("INFO: File uploaded to Supabase: %s", fullPublicURL)
-	return fullPublicURL, nil
+		fullPublicURL := fmt.Sprintf("%s/%s", s.publicURL, destinationPath)
+		log.Printf("INFO: File uploaded to Supabase: %s", fullPublicURL)
+		return fullPublicURL, nil
+	}
+	return "", fmt.Errorf("upload failed after 3 attempts: %w", lastErr)
 }
 
 func (s *SupabaseStorageClient) DeleteFile(ctx context.Context, destinationPath string) error {
@@ -107,19 +125,7 @@ func (s *SupabaseStorageClient) DeleteFile(ctx context.Context, destinationPath 
 	return nil
 }
 
-// helper to avoid importing bytes for a simple reader
-func bytesReader(b []byte) *byteReader { return &byteReader{b: b} }
 
-type byteReader struct{ b []byte }
-
-func (r *byteReader) Read(p []byte) (int, error) {
-	if len(r.b) == 0 {
-		return 0, io.EOF
-	}
-	n := copy(p, r.b)
-	r.b = r.b[n:]
-	return n, nil
-}
 
 // GetPublicURL helper untuk mendapatkan public URL dari path
 func (s *SupabaseStorageClient) GetPublicURL(path string) string {

@@ -18,6 +18,15 @@ type MidtransClient struct {
 	serverKey string
 }
 
+var validPaymentTypes = map[string]bool{
+	"credit_card":   true,
+	"bank_transfer": true,
+	"echannel":      true,
+	"gopay":         true,
+	"shopeepay":     true,
+	"qris":          true,
+}
+
 func NewMidtransClient() *MidtransClient {
 	key := os.Getenv("MIDTRANS_SERVER_KEY")
 	env := os.Getenv("MIDTRANS_ENV")
@@ -39,9 +48,14 @@ func NewMidtransClient() *MidtransClient {
 	}
 }
 
+// CreateCharge creates payment charge. Note: ctx is accepted but Midtrans SDK ignores it.
+// Consider implementing timeout/rate-limit before calling SDK if needed.
 func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, grossAmount int64, paymentType string, params map[string]interface{}) (string, string, error) {
 	if m.serverKey == "" {
 		return "", "", fmt.Errorf("midtrans not configured")
+	}
+	if !validPaymentTypes[paymentType] {
+		return "", "", fmt.Errorf("invalid payment type: %s", paymentType)
 	}
 
 	req := &coreapi.ChargeReq{
@@ -52,20 +66,20 @@ func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, gross
 		},
 	}
 
-	// Tambahkan detail sesuai paymentType jika diperlukan (customer, item, bank, dsb.)
-
 	resp, err := m.core.ChargeTransaction(req)
 	if err != nil {
 		log.Printf("ERROR: Midtrans charge failed for order %s: %v", orderID, err)
 		return "", "", fmt.Errorf("payment gateway error: %w", err)
 	}
 
+	log.Printf("INFO: Midtrans charge created: order=%s tx=%s status=%s fraud=%s",
+		orderID, resp.TransactionID, resp.TransactionStatus, resp.FraudStatus)
+
 	var redirect string
 	if resp.RedirectURL != "" {
 		redirect = resp.RedirectURL
 	}
 
-	log.Printf("INFO: Midtrans charge created: order=%s tx=%s", orderID, resp.TransactionID)
 	return resp.TransactionID, redirect, nil
 }
 

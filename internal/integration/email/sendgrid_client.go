@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -39,9 +41,18 @@ func (s *SendGridClient) SendEmail(ctx context.Context, to, subject, plainText, 
 	if s.client == nil || s.fromAddr == "" {
 		return fmt.Errorf("sendgrid not configured")
 	}
+
+	// Fallback plainText from HTML if empty to avoid spam marking
+	if plainText == "" && htmlContent != "" {
+		plainText = stripHTML(htmlContent)
+	}
+
 	from := mail.NewEmail(s.fromName, s.fromAddr)
 	toEmail := mail.NewEmail("", to)
 	message := mail.NewSingleEmail(from, subject, toEmail, plainText, htmlContent)
+
+	// Note: SendGrid client doesn't support context timeout directly
+	// Consider implementing custom HTTP client wrapper if strict timeout control needed
 
 	resp, err := s.client.Send(message)
 	if err != nil {
@@ -85,4 +96,11 @@ func (s *SendGridClient) SendWithTemplate(ctx context.Context, to, templateID st
 	}
 	log.Printf("INFO: Template email sent to %s (template: %s)", to, templateID)
 	return nil
+}
+
+// stripHTML removes HTML tags for plaintext fallback
+func stripHTML(html string) string {
+	re := regexp.MustCompile(`<[^>]*>`)
+	plain := re.ReplaceAllString(html, "")
+	return strings.TrimSpace(plain)
 }

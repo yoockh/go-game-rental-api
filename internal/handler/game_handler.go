@@ -53,8 +53,6 @@ func (h *GameHandler) GetAllGames(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to retrieve games")
 	}
 
-	gameDTOs := dto.ToGameDTOList(games)
-
 	totalCount := int64(len(games))
 	meta := map[string]any{
 		"page":        page,
@@ -63,7 +61,7 @@ func (h *GameHandler) GetAllGames(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Games retrieved successfully", gameDTOs, meta)
+	return myResponse.Paginated(c, "Games retrieved successfully", games, meta)
 }
 
 // GetGameDetail godoc
@@ -88,8 +86,7 @@ func (h *GameHandler) GetGameDetail(c echo.Context) error {
 		return myResponse.NotFound(c, "Game not found")
 	}
 
-	response := dto.ToGameDTO(game)
-	return myResponse.Success(c, "Game retrieved successfully", response)
+	return myResponse.Success(c, "Game retrieved successfully", game)
 }
 
 // SearchGames godoc
@@ -125,8 +122,6 @@ func (h *GameHandler) SearchGames(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to search games")
 	}
 
-	gameDTOs := dto.ToGameDTOList(games)
-
 	totalCount := int64(len(games))
 	meta := map[string]any{
 		"page":        page,
@@ -135,7 +130,7 @@ func (h *GameHandler) SearchGames(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Games search results", gameDTOs, meta)
+	return myResponse.Paginated(c, "Games search results", games, meta)
 }
 
 // CreateGame godoc
@@ -265,8 +260,6 @@ func (h *GameHandler) GetPartnerGames(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to retrieve games")
 	}
 
-	gameDTOs := dto.ToGameDTOList(games)
-
 	totalCount := int64(len(games))
 	meta := map[string]any{
 		"page":        page,
@@ -275,5 +268,5 @@ func (h *GameHandler) GetPartnerGames(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Partner games retrieved successfully", gameDTOs, meta)
+	return myResponse.Paginated(c, "Partner games retrieved successfully", games, meta)
 }

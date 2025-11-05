@@ -138,8 +138,7 @@ func (h *BookingHandler) GetBookingDetail(c echo.Context) error {
 		return myResponse.NotFound(c, err.Error())
 	}
 
-	response := dto.ToBookingDTO(booking)
-	return myResponse.Success(c, "Booking retrieved successfully", response)
+	return myResponse.Success(c, "Booking retrieved successfully", booking)
 }
 
 // CancelBooking godoc
@@ -205,8 +204,6 @@ func (h *BookingHandler) GetAllBookings(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	bookingDTOs := dto.ToBookingDTOList(bookings)
-
 	totalCount := int64(len(bookings))
 	meta := map[string]any{
 		"page":        page,
@@ -215,7 +212,7 @@ func (h *BookingHandler) GetAllBookings(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Bookings retrieved successfully", bookingDTOs, meta)
+	return myResponse.Paginated(c, "Bookings retrieved successfully", bookings, meta)
 }
 
 // GetBookingDetailAdmin godoc
@@ -242,6 +239,5 @@ func (h *BookingHandler) GetBookingDetailAdmin(c echo.Context) error {
 		return myResponse.NotFound(c, err.Error())
 	}
 
-	response := dto.ToBookingDTO(booking)
-	return myResponse.Success(c, "Booking retrieved successfully", response)
+	return myResponse.Success(c, "Booking retrieved successfully", booking)
 }

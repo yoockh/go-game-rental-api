@@ -102,8 +102,6 @@ func (h *ReviewHandler) GetGameReviews(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to retrieve reviews")
 	}
 
-	reviewDTOs := dto.ToReviewDTOList(reviews)
-
 	totalCount := int64(len(reviews))
 	meta := map[string]any{
 		"page":        page,
@@ -112,5 +110,5 @@ func (h *ReviewHandler) GetGameReviews(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Reviews retrieved successfully", reviewDTOs, meta)
+	return myResponse.Paginated(c, "Reviews retrieved successfully", reviews, meta)
 }

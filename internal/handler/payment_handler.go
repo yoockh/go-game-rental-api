@@ -60,8 +60,7 @@ func (h *PaymentHandler) CreatePayment(c echo.Context) error {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	response := dto.ToPaymentDTO(payment)
-	return myResponse.Created(c, "Payment created successfully", response)
+	return myResponse.Created(c, "Payment created successfully", payment)
 }
 
 // GetPaymentByBooking godoc
@@ -93,8 +92,7 @@ func (h *PaymentHandler) GetPaymentByBooking(c echo.Context) error {
 		return myResponse.NotFound(c, err.Error())
 	}
 
-	response := dto.ToPaymentDTO(payment)
-	return myResponse.Success(c, "Payment retrieved successfully", response)
+	return myResponse.Success(c, "Payment retrieved successfully", payment)
 }
 
 // GetPaymentDetail godoc
@@ -121,8 +119,7 @@ func (h *PaymentHandler) GetPaymentDetail(c echo.Context) error {
 		return myResponse.NotFound(c, err.Error())
 	}
 
-	response := dto.ToPaymentDTO(payment)
-	return myResponse.Success(c, "Payment retrieved successfully", response)
+	return myResponse.Success(c, "Payment retrieved successfully", payment)
 }
 
 // PaymentWebhook godoc
@@ -190,8 +187,6 @@ func (h *PaymentHandler) GetAllPayments(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	paymentDTOs := dto.ToPaymentDTOList(payments)
-
 	totalCount := int64(len(payments))
 	meta := map[string]any{
 		"page":        page,
@@ -200,7 +195,7 @@ func (h *PaymentHandler) GetAllPayments(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Payments retrieved successfully", paymentDTOs, meta)
+	return myResponse.Paginated(c, "Payments retrieved successfully", payments, meta)
 }
 
 // GetPaymentsByStatus godoc
@@ -235,8 +230,6 @@ func (h *PaymentHandler) GetPaymentsByStatus(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	paymentDTOs := dto.ToPaymentDTOList(payments)
-
 	totalCount := int64(len(payments))
 	meta := map[string]any{
 		"page":        page,
@@ -245,5 +238,5 @@ func (h *PaymentHandler) GetPaymentsByStatus(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Payments retrieved successfully", paymentDTOs, meta)
+	return myResponse.Paginated(c, "Payments retrieved successfully", payments, meta)
 }

@@ -56,7 +56,11 @@ func (h *DisputeHandler) CreateDispute(c echo.Context) error {
 		return myResponse.BadRequest(c, "Validation error: "+err.Error())
 	}
 
-	disputeData := dto.FromCreateDisputeRequest(&req)
+	disputeData := &model.Dispute{
+		Type:        req.Type,
+		Title:       req.Title,
+		Description: req.Description,
+	}
 
 	err := h.disputeService.CreateDispute(userID, bookingID, disputeData)
 	if err != nil {
@@ -109,8 +113,6 @@ func (h *DisputeHandler) GetMyDisputes(c echo.Context) error {
 		}
 	}
 
-	disputeDTOs := dto.ToDisputeDTOList(userDisputes)
-
 	totalCount := int64(len(userDisputes))
 	meta := map[string]any{
 		"page":        page,
@@ -119,7 +121,7 @@ func (h *DisputeHandler) GetMyDisputes(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Disputes retrieved successfully", disputeDTOs, meta)
+	return myResponse.Paginated(c, "Disputes retrieved successfully", userDisputes, meta)
 }
 
 // GetAllDisputes godoc
@@ -152,8 +154,6 @@ func (h *DisputeHandler) GetAllDisputes(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	disputeDTOs := dto.ToDisputeDTOList(disputes)
-
 	totalCount := int64(len(disputes))
 	meta := map[string]any{
 		"page":        page,
@@ -162,5 +162,5 @@ func (h *DisputeHandler) GetAllDisputes(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Disputes retrieved successfully", disputeDTOs, meta)
+	return myResponse.Paginated(c, "Disputes retrieved successfully", disputes, meta)
 }

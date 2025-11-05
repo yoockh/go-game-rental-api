@@ -44,8 +44,7 @@ func (h *UserHandler) GetMyProfile(c echo.Context) error {
 		return myResponse.NotFound(c, "User not found")
 	}
 
-	response := dto.ToUserDTO(user)
-	return myResponse.Success(c, "Profile retrieved successfully", response)
+	return myResponse.Success(c, "Profile retrieved successfully", user)
 }
 
 // UpdateMyProfile godoc
@@ -85,8 +84,7 @@ func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Profile updated but failed to retrieve")
 	}
 
-	response := dto.ToUserDTO(user)
-	return myResponse.Success(c, "Profile updated successfully", response)
+	return myResponse.Success(c, "Profile updated successfully", user)
 }
 
 // GetAllUsers godoc
@@ -121,8 +119,6 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	userDTOs := dto.ToUserDTOList(users)
-
 	meta := map[string]any{
 		"page":        page,
 		"limit":       limit,
@@ -130,7 +126,7 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Users retrieved successfully", userDTOs, meta)
+	return myResponse.Paginated(c, "Users retrieved successfully", users, meta)
 }
 
 // GetUserDetail godoc
@@ -159,8 +155,7 @@ func (h *UserHandler) GetUserDetail(c echo.Context) error {
 		return myResponse.NotFound(c, err.Error())
 	}
 
-	response := dto.ToUserDTO(user)
-	return myResponse.Success(c, "User retrieved successfully", response)
+	return myResponse.Success(c, "User retrieved successfully", user)
 }
 
 // UpdateUserRole godoc
@@ -205,8 +200,7 @@ func (h *UserHandler) UpdateUserRole(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Role updated but failed to retrieve user")
 	}
 
-	response := dto.ToUserDTO(user)
-	return myResponse.Success(c, "User role updated successfully", response)
+	return myResponse.Success(c, "User role updated successfully", user)
 }
 
 // ToggleUserStatus godoc
@@ -242,8 +236,7 @@ func (h *UserHandler) ToggleUserStatus(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Status updated but failed to retrieve user")
 	}
 
-	response := dto.ToUserDTO(user)
-	return myResponse.Success(c, "User status updated successfully", response)
+	return myResponse.Success(c, "User status updated successfully", user)
 }
 
 // DeleteUser godoc

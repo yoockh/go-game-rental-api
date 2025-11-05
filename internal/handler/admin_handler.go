@@ -5,7 +5,6 @@ import (
 	myRequest "github.com/Yoochan45/go-api-utils/pkg-echo/request"
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/Yoochan45/go-game-rental-api/internal/model/dto"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -55,8 +54,6 @@ func (h *AdminHandler) GetPartnerApplications(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	applicationDTOs := dto.ToPartnerApplicationDTOList(applications)
-
 	totalCount := int64(len(applications))
 	meta := map[string]any{
 		"page":        page,
@@ -65,7 +62,7 @@ func (h *AdminHandler) GetPartnerApplications(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Partner applications retrieved successfully", applicationDTOs, meta)
+	return myResponse.Paginated(c, "Partner applications retrieved successfully", applications, meta)
 }
 
 // ApprovePartnerApplication godoc
@@ -169,8 +166,6 @@ func (h *AdminHandler) GetGameListings(c echo.Context) error {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
-	gameDTOs := dto.ToGameDTOList(games)
-
 	totalCount := int64(len(games))
 	meta := map[string]any{
 		"page":        page,
@@ -179,7 +174,7 @@ func (h *AdminHandler) GetGameListings(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Game listings retrieved successfully", gameDTOs, meta)
+	return myResponse.Paginated(c, "Game listings retrieved successfully", games, meta)
 }
 
 // ApproveGameListing godoc

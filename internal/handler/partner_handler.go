@@ -100,8 +100,6 @@ func (h *PartnerHandler) GetPartnerBookings(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to retrieve bookings")
 	}
 
-	bookingDTOs := dto.ToBookingDTOList(bookings)
-
 	totalCount := int64(len(bookings))
 	meta := map[string]any{
 		"page":        page,
@@ -110,7 +108,7 @@ func (h *PartnerHandler) GetPartnerBookings(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Partner bookings retrieved successfully", bookingDTOs, meta)
+	return myResponse.Paginated(c, "Partner bookings retrieved successfully", bookings, meta)
 }
 
 // ConfirmHandover godoc

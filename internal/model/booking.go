@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -19,10 +18,10 @@ const (
 )
 
 type Booking struct {
-	ID                  uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	UserID              uuid.UUID      `gorm:"type:uuid;not null" json:"user_id"`
-	GameID              uuid.UUID      `gorm:"type:uuid;not null" json:"game_id"`
-	PartnerID           uuid.UUID      `gorm:"type:uuid;not null" json:"partner_id"`
+	ID                  uint           `gorm:"primarykey" json:"id"`
+	UserID              uint           `gorm:"not null" json:"user_id"`
+	GameID              uint           `gorm:"not null" json:"game_id"`
+	PartnerID           uint           `gorm:"not null" json:"partner_id"`
 	StartDate           time.Time      `gorm:"type:date;not null" json:"start_date" validate:"required"`
 	EndDate             time.Time      `gorm:"type:date;not null" json:"end_date" validate:"required"`
 	RentalDays          int            `gorm:"not null" json:"rental_days"`
@@ -49,11 +48,4 @@ type Booking struct {
 
 func (Booking) TableName() string {
 	return "bookings"
-}
-
-func (b *Booking) BeforeCreate(tx *gorm.DB) error {
-	if b.ID == uuid.Nil {
-		b.ID = uuid.New()
-	}
-	return nil
 }

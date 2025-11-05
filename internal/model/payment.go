@@ -2,9 +2,6 @@ package model
 
 import (
 	"time"
-
-	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type PaymentStatus string
@@ -24,8 +21,8 @@ const (
 )
 
 type Payment struct {
-	ID                uuid.UUID       `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	BookingID         uuid.UUID       `gorm:"type:uuid;not null" json:"booking_id"`
+	ID                uint            `gorm:"primarykey" json:"id"`
+	BookingID         uint            `gorm:"not null" json:"booking_id"`
 	Provider          PaymentProvider `gorm:"type:payment_provider;not null" json:"provider"`
 	ProviderPaymentID *string         `json:"provider_payment_id,omitempty"`
 	Amount            float64         `gorm:"type:decimal(12,2);not null" json:"amount"`
@@ -42,11 +39,4 @@ type Payment struct {
 
 func (Payment) TableName() string {
 	return "payments"
-}
-
-func (p *Payment) BeforeCreate(tx *gorm.DB) error {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
-	}
-	return nil
 }

@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -17,9 +16,9 @@ const (
 )
 
 type Game struct {
-	ID                uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	PartnerID         uuid.UUID      `gorm:"type:uuid;not null" json:"partner_id"`
-	CategoryID        uuid.UUID      `gorm:"type:uuid;not null" json:"category_id"`
+	ID                uint           `gorm:"primarykey" json:"id"`
+	PartnerID         uint           `gorm:"not null" json:"partner_id"`
+	CategoryID        uint           `gorm:"not null" json:"category_id"`
 	Name              string         `gorm:"not null" json:"name" validate:"required"`
 	Description       *string        `json:"description,omitempty"`
 	Platform          *string        `json:"platform,omitempty"`
@@ -31,7 +30,7 @@ type Game struct {
 	Images            pq.StringArray `gorm:"type:text[]" json:"images,omitempty"`
 	IsActive          bool           `gorm:"default:false" json:"is_active"`
 	ApprovalStatus    ApprovalStatus `gorm:"type:approval_status;default:pending_approval" json:"approval_status"`
-	ApprovedBy        *uuid.UUID     `gorm:"type:uuid" json:"approved_by,omitempty"`
+	ApprovedBy        *uint          `json:"approved_by,omitempty"`
 	ApprovedAt        *time.Time     `json:"approved_at,omitempty"`
 	RejectionReason   *string        `json:"rejection_reason,omitempty"`
 	CreatedAt         time.Time      `json:"created_at"`
@@ -48,11 +47,4 @@ type Game struct {
 
 func (Game) TableName() string {
 	return "games"
-}
-
-func (g *Game) BeforeCreate(tx *gorm.DB) error {
-	if g.ID == uuid.Nil {
-		g.ID = uuid.New()
-	}
-	return nil
 }

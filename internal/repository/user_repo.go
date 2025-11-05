@@ -2,21 +2,20 @@ package repository
 
 import (
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	Create(user *model.User) error
-	GetByID(id uuid.UUID) (*model.User, error)
+	GetByID(id uint) (*model.User, error)
 	GetByEmail(email string) (*model.User, error)
 	Update(user *model.User) error
-	Delete(id uuid.UUID) error
+	Delete(id uint) error
 
 	GetAll(limit, offset int) ([]*model.User, error)
 	GetByRole(role model.UserRole, limit, offset int) ([]*model.User, error)
-	UpdateRole(userID uuid.UUID, newRole model.UserRole) error
-	UpdateActiveStatus(userID uuid.UUID, isActive bool) error
+	UpdateRole(userID uint, newRole model.UserRole) error
+	UpdateActiveStatus(userID uint, isActive bool) error
 	GetActiveUsers(limit, offset int) ([]*model.User, error)
 	CountByRole(role model.UserRole) (int64, error)
 }
@@ -33,7 +32,7 @@ func (r *userRepository) Create(user *model.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *userRepository) GetByID(id uuid.UUID) (*model.User, error) {
+func (r *userRepository) GetByID(id uint) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
@@ -55,7 +54,7 @@ func (r *userRepository) Update(user *model.User) error {
 	return r.db.Save(user).Error
 }
 
-func (r *userRepository) Delete(id uuid.UUID) error {
+func (r *userRepository) Delete(id uint) error {
 	// Soft delete - GORM akan set deleted_at
 	return r.db.Delete(&model.User{}, id).Error
 }
@@ -72,11 +71,11 @@ func (r *userRepository) GetByRole(role model.UserRole, limit, offset int) ([]*m
 	return users, err
 }
 
-func (r *userRepository) UpdateRole(userID uuid.UUID, newRole model.UserRole) error {
+func (r *userRepository) UpdateRole(userID uint, newRole model.UserRole) error {
 	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("role", newRole).Error
 }
 
-func (r *userRepository) UpdateActiveStatus(userID uuid.UUID, isActive bool) error {
+func (r *userRepository) UpdateActiveStatus(userID uint, isActive bool) error {
 	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("is_active", isActive).Error
 }
 

@@ -1,5 +1,5 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable extension for auto increment (bukan uint-ossp)
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- hapus ini
 
 -- Create ENUM types
 CREATE TYPE user_role AS ENUM ('customer', 'partner', 'admin', 'super_admin');
@@ -13,7 +13,7 @@ CREATE TYPE payment_provider AS ENUM ('stripe', 'midtrans');
 
 -- Users table
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE users (
 
 -- Categories table
 CREATE TABLE categories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
     description TEXT,
     is_active BOOLEAN DEFAULT true,
@@ -36,8 +36,8 @@ CREATE TABLE categories (
 
 -- Partner Applications table
 CREATE TABLE partner_applications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     business_name VARCHAR(255) NOT NULL,
     business_address TEXT NOT NULL,
     business_phone VARCHAR(20),
@@ -46,14 +46,14 @@ CREATE TABLE partner_applications (
     rejection_reason TEXT,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     decided_at TIMESTAMP,
-    decided_by UUID REFERENCES users(id)
+    decided_by INTEGER REFERENCES users(id)
 );
 
 -- Games table
 CREATE TABLE games (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    partner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    category_id UUID NOT NULL REFERENCES categories(id),
+    id SERIAL PRIMARY KEY,
+    partner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category_id INTEGER NOT NULL REFERENCES categories(id),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     platform VARCHAR(100),
@@ -65,7 +65,7 @@ CREATE TABLE games (
     images TEXT[],
     is_active BOOLEAN DEFAULT false,
     approval_status approval_status DEFAULT 'pending_approval',
-    approved_by UUID REFERENCES users(id),
+    approved_by INTEGER REFERENCES users(id),
     approved_at TIMESTAMP,
     rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -74,10 +74,10 @@ CREATE TABLE games (
 
 -- Bookings table
 CREATE TABLE bookings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-    partner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+    partner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     rental_days INTEGER NOT NULL,
@@ -95,8 +95,8 @@ CREATE TABLE bookings (
 
 -- Payments table
 CREATE TABLE payments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
     provider payment_provider NOT NULL,
     provider_payment_id VARCHAR(255),
     amount DECIMAL(12,2) NOT NULL,
@@ -110,10 +110,10 @@ CREATE TABLE payments (
 
 -- Reviews table
 CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id UUID UNIQUE NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER UNIQUE NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -122,23 +122,23 @@ CREATE TABLE reviews (
 
 -- Disputes table
 CREATE TABLE disputes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
-    reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+    reporter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type dispute_type NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     status dispute_status DEFAULT 'open',
     resolution TEXT,
-    resolved_by UUID REFERENCES users(id),
+    resolved_by INTEGER REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP
 );
 
 -- Refresh Tokens table
 CREATE TABLE refresh_tokens (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     is_revoked BOOLEAN DEFAULT false,

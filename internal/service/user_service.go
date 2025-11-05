@@ -5,7 +5,6 @@ import (
 
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository"
-	"github.com/google/uuid"
 )
 
 var (
@@ -17,19 +16,19 @@ var (
 
 type UserService interface {
 	// Public methods
-	GetProfile(userID uuid.UUID) (*model.User, error)
-	UpdateProfile(userID uuid.UUID, updateData *model.User) error
+	GetProfile(userID uint) (*model.User, error)
+	UpdateProfile(userID uint, updateData *model.User) error
 
 	// Admin methods
 	GetAllUsers(requestorRole model.UserRole, limit, offset int) ([]*model.User, error)
-	BanUser(requestorID uuid.UUID, requestorRole model.UserRole, targetUserID uuid.UUID) error
-	UnbanUser(requestorID uuid.UUID, requestorRole model.UserRole, targetUserID uuid.UUID) error
+	BanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error
+	UnbanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error
 
 	// Super Admin methods
 	CreateAdmin(requestorRole model.UserRole, userData *model.User) error
-	DeleteUser(requestorID uuid.UUID, requestorRole model.UserRole, targetUserID uuid.UUID) error
-	PromoteToAdmin(requestorRole model.UserRole, userID uuid.UUID) error
-	DemoteFromAdmin(requestorRole model.UserRole, userID uuid.UUID) error
+	DeleteUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error
+	PromoteToAdmin(requestorRole model.UserRole, userID uint) error
+	DemoteFromAdmin(requestorRole model.UserRole, userID uint) error
 }
 
 type userService struct {
@@ -40,11 +39,11 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	return &userService{userRepo: userRepo}
 }
 
-func (s *userService) GetProfile(userID uuid.UUID) (*model.User, error) {
+func (s *userService) GetProfile(userID uint) (*model.User, error) {
 	return s.userRepo.GetByID(userID)
 }
 
-func (s *userService) UpdateProfile(userID uuid.UUID, updateData *model.User) error {
+func (s *userService) UpdateProfile(userID uint, updateData *model.User) error {
 	user, err := s.userRepo.GetByID(userID)
 	if err != nil {
 		return ErrUserNotFound
@@ -66,7 +65,7 @@ func (s *userService) GetAllUsers(requestorRole model.UserRole, limit, offset in
 	return s.userRepo.GetAll(limit, offset)
 }
 
-func (s *userService) BanUser(requestorID uuid.UUID, requestorRole model.UserRole, targetUserID uuid.UUID) error {
+func (s *userService) BanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error {
 	if !s.canManageUsers(requestorRole) {
 		return ErrInsufficientPermission
 	}
@@ -88,7 +87,7 @@ func (s *userService) BanUser(requestorID uuid.UUID, requestorRole model.UserRol
 	return s.userRepo.UpdateActiveStatus(targetUserID, false)
 }
 
-func (s *userService) UnbanUser(requestorID uuid.UUID, requestorRole model.UserRole, targetUserID uuid.UUID) error {
+func (s *userService) UnbanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error {
 	if !s.canManageUsers(requestorRole) {
 		return ErrInsufficientPermission
 	}
@@ -105,7 +104,7 @@ func (s *userService) CreateAdmin(requestorRole model.UserRole, userData *model.
 	return s.userRepo.Create(userData)
 }
 
-func (s *userService) DeleteUser(requestorID uuid.UUID, requestorRole model.UserRole, targetUserID uuid.UUID) error {
+func (s *userService) DeleteUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error {
 	if requestorRole != model.RoleSuperAdmin {
 		return ErrInsufficientPermission
 	}
@@ -127,7 +126,7 @@ func (s *userService) DeleteUser(requestorID uuid.UUID, requestorRole model.User
 	return s.userRepo.Delete(targetUserID)
 }
 
-func (s *userService) PromoteToAdmin(requestorRole model.UserRole, userID uuid.UUID) error {
+func (s *userService) PromoteToAdmin(requestorRole model.UserRole, userID uint) error {
 	if requestorRole != model.RoleSuperAdmin {
 		return ErrInsufficientPermission
 	}
@@ -135,7 +134,7 @@ func (s *userService) PromoteToAdmin(requestorRole model.UserRole, userID uuid.U
 	return s.userRepo.UpdateRole(userID, model.RoleAdmin)
 }
 
-func (s *userService) DemoteFromAdmin(requestorRole model.UserRole, userID uuid.UUID) error {
+func (s *userService) DemoteFromAdmin(requestorRole model.UserRole, userID uint) error {
 	if requestorRole != model.RoleSuperAdmin {
 		return ErrInsufficientPermission
 	}

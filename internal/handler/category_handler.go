@@ -7,6 +7,7 @@ import (
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
+	"github.com/Yoochan45/go-game-rental-api/internal/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +20,7 @@ type CategoryHandler struct {
 func NewCategoryHandler(categoryService service.CategoryService) *CategoryHandler {
 	return &CategoryHandler{
 		categoryService: categoryService,
-		validate:        validator.New(),
+		validate:        utils.GetValidator(),
 	}
 }
 
@@ -38,8 +39,7 @@ func (h *CategoryHandler) GetAllCategories(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to retrieve categories")
 	}
 
-	categoryDTOs := dto.ToCategoryDTOList(categories)
-	return myResponse.Success(c, "Categories retrieved successfully", categoryDTOs)
+	return myResponse.Success(c, "Categories retrieved successfully", categories)
 }
 
 // GetCategoryDetail godoc
@@ -49,7 +49,7 @@ func (h *CategoryHandler) GetAllCategories(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "Category ID"
-// @Success 200 {object} dto.CategoryDTO "Category retrieved successfully"
+// @Success 200 {object} model.Category "Category retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid category ID"
 // @Failure 404 {object} map[string]interface{} "Category not found"
 // @Router /categories/{id} [get]
@@ -64,8 +64,7 @@ func (h *CategoryHandler) GetCategoryDetail(c echo.Context) error {
 		return myResponse.NotFound(c, "Category not found")
 	}
 
-	response := dto.ToCategoryDTO(category)
-	return myResponse.Success(c, "Category retrieved successfully", response)
+	return myResponse.Success(c, "Category retrieved successfully", category)
 }
 
 // CreateCategory godoc
@@ -95,7 +94,7 @@ func (h *CategoryHandler) CreateCategory(c echo.Context) error {
 	// Create category data
 	categoryData := &model.Category{
 		Name:        req.Name,
-		Description: &req.Description,
+		Description: utils.PtrOrNil(req.Description),
 		IsActive:    true,
 	}
 
@@ -104,8 +103,7 @@ func (h *CategoryHandler) CreateCategory(c echo.Context) error {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	response := dto.ToCategoryDTO(categoryData)
-	return myResponse.Created(c, "Category created successfully", response)
+	return myResponse.Created(c, "Category created successfully", categoryData)
 }
 
 // UpdateCategory godoc
@@ -141,7 +139,7 @@ func (h *CategoryHandler) UpdateCategory(c echo.Context) error {
 	// Create update data
 	updateData := &model.Category{
 		Name:        req.Name,
-		Description: &req.Description,
+		Description: utils.PtrOrNil(req.Description),
 	}
 
 	err := h.categoryService.UpdateCategory(model.UserRole(role), categoryID, updateData)
@@ -155,8 +153,7 @@ func (h *CategoryHandler) UpdateCategory(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to retrieve updated category")
 	}
 
-	response := dto.ToCategoryDTO(category)
-	return myResponse.Success(c, "Category updated successfully", response)
+	return myResponse.Success(c, "Category updated successfully", category)
 }
 
 // DeleteCategory godoc

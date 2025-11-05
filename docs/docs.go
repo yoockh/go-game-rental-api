@@ -114,7 +114,8 @@ const docTemplate = `{
                     "200": {
                         "description": "Booking retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.BookingDTO"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -911,7 +912,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.UserDTO"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "400": {
@@ -1129,6 +1130,145 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/login": {
+            "post": {
+                "description": "Authenticate user and return JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "description": "Refresh expired JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh JWT token",
+                "parameters": [
+                    {
+                        "description": "Refresh token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid refresh token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Register a new user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "Registration details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/bookings": {
             "post": {
                 "security": [
@@ -1327,7 +1467,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Payment retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.PaymentDTO"
+                            "$ref": "#/definitions/model.Payment"
                         }
                     },
                     "400": {
@@ -1392,7 +1532,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Payment created successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.PaymentDTO"
+                            "$ref": "#/definitions/model.Payment"
                         }
                     },
                     "400": {
@@ -1504,7 +1644,8 @@ const docTemplate = `{
                     "200": {
                         "description": "Booking retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.BookingDTO"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -1640,7 +1781,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Category retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.CategoryDTO"
+                            "$ref": "#/definitions/model.Category"
                         }
                     },
                     "400": {
@@ -1900,7 +2041,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Game retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.GameDTO"
+                            "$ref": "#/definitions/model.Game"
                         }
                     },
                     "400": {
@@ -2361,7 +2502,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Payment retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.PaymentDTO"
+                            "$ref": "#/definitions/model.Payment"
                         }
                     },
                     "400": {
@@ -2403,7 +2544,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Profile retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.UserDTO"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "401": {
@@ -2447,7 +2588,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Profile updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.UserDTO"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "400": {
@@ -2511,94 +2652,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.BookingDTO": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "daily_price": {
-                    "type": "number"
-                },
-                "end_date": {
-                    "type": "string"
-                },
-                "game": {
-                    "$ref": "#/definitions/dto.GameDTO"
-                },
-                "game_id": {
-                    "type": "integer"
-                },
-                "handover_confirmed_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "notes": {
-                    "type": "string"
-                },
-                "partner": {
-                    "$ref": "#/definitions/dto.UserDTO"
-                },
-                "partner_id": {
-                    "type": "integer"
-                },
-                "payment": {
-                    "$ref": "#/definitions/dto.PaymentDTO"
-                },
-                "rental_days": {
-                    "type": "integer"
-                },
-                "return_confirmed_at": {
-                    "type": "string"
-                },
-                "review": {
-                    "$ref": "#/definitions/dto.ReviewDTO"
-                },
-                "security_deposit": {
-                    "type": "number"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/model.BookingStatus"
-                },
-                "total_amount": {
-                    "type": "number"
-                },
-                "total_rental_price": {
-                    "type": "number"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/dto.UserDTO"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.CategoryDTO": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.CreateBookingRequest": {
             "type": "object",
             "required": [
@@ -2777,115 +2830,32 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.GameDTO": {
+        "dto.LoginRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
-                "approval_status": {
-                    "$ref": "#/definitions/model.ApprovalStatus"
-                },
-                "approved_at": {
+                "email": {
                     "type": "string"
                 },
-                "approved_by": {
-                    "type": "integer"
-                },
-                "approver": {
-                    "$ref": "#/definitions/dto.UserDTO"
-                },
-                "available_stock": {
-                    "type": "integer"
-                },
-                "category": {
-                    "$ref": "#/definitions/dto.CategoryDTO"
-                },
-                "category_id": {
-                    "type": "integer"
-                },
-                "condition": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "partner": {
-                    "$ref": "#/definitions/dto.UserDTO"
-                },
-                "partner_id": {
-                    "type": "integer"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "rejection_reason": {
-                    "type": "string"
-                },
-                "rental_price_per_day": {
-                    "type": "number"
-                },
-                "security_deposit": {
-                    "type": "number"
-                },
-                "stock": {
-                    "type": "integer"
-                },
-                "updated_at": {
+                "password": {
                     "type": "string"
                 }
             }
         },
-        "dto.PaymentDTO": {
+        "dto.LoginResponse": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "booking_id": {
-                    "type": "integer"
-                },
-                "created_at": {
+                "access_token": {
                     "type": "string"
                 },
-                "failed_at": {
+                "expires_at": {
                     "type": "string"
                 },
-                "failure_reason": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "paid_at": {
-                    "type": "string"
-                },
-                "payment_method": {
-                    "type": "string"
-                },
-                "provider": {
-                    "$ref": "#/definitions/model.PaymentProvider"
-                },
-                "provider_payment_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/model.PaymentStatus"
+                "user": {
+                    "$ref": "#/definitions/model.User"
                 }
             }
         },
@@ -2910,38 +2880,42 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ReviewDTO": {
+        "dto.RefreshTokenRequest": {
             "type": "object",
+            "required": [
+                "refresh_token"
+            ],
             "properties": {
-                "booking_id": {
-                    "type": "integer"
-                },
-                "comment": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name",
+                "password"
+            ],
+            "properties": {
+                "address": {
                     "type": "string"
                 },
-                "created_at": {
+                "email": {
                     "type": "string"
                 },
-                "game": {
-                    "$ref": "#/definitions/dto.GameDTO"
+                "full_name": {
+                    "type": "string",
+                    "minLength": 2
                 },
-                "game_id": {
-                    "type": "integer"
+                "password": {
+                    "type": "string",
+                    "minLength": 8
                 },
-                "id": {
-                    "type": "integer"
-                },
-                "rating": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/dto.UserDTO"
-                },
-                "user_id": {
-                    "type": "integer"
+                "phone": {
+                    "type": "string",
+                    "minLength": 10
                 }
             }
         },
@@ -3044,32 +3018,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UserDTO": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/model.UserRole"
-                }
-            }
-        },
         "model.ApprovalStatus": {
             "type": "string",
             "enum": [
@@ -3082,6 +3030,86 @@ const docTemplate = `{
                 "ApprovalApproved",
                 "ApprovalRejected"
             ]
+        },
+        "model.Booking": {
+            "type": "object",
+            "required": [
+                "end_date",
+                "start_date"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "daily_price": {
+                    "type": "number"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "game": {
+                    "$ref": "#/definitions/model.Game"
+                },
+                "game_id": {
+                    "type": "integer"
+                },
+                "handover_confirmed_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "partner": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "partner_id": {
+                    "type": "integer"
+                },
+                "payment": {
+                    "$ref": "#/definitions/model.Payment"
+                },
+                "rental_days": {
+                    "type": "integer"
+                },
+                "return_confirmed_at": {
+                    "type": "string"
+                },
+                "review": {
+                    "$ref": "#/definitions/model.Review"
+                },
+                "security_deposit": {
+                    "type": "number"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/model.BookingStatus"
+                },
+                "total_amount": {
+                    "type": "number"
+                },
+                "total_rental_price": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    ]
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
         },
         "model.BookingStatus": {
             "type": "string",
@@ -3102,6 +3130,29 @@ const docTemplate = `{
                 "BookingDisputed"
             ]
         },
+        "model.Category": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "model.DisputeType": {
             "type": "string",
             "enum": [
@@ -3118,6 +3169,136 @@ const docTemplate = `{
                 "DisputeNoShow",
                 "DisputeOther"
             ]
+        },
+        "model.Game": {
+            "type": "object",
+            "required": [
+                "name",
+                "rental_price_per_day"
+            ],
+            "properties": {
+                "approval_status": {
+                    "$ref": "#/definitions/model.ApprovalStatus"
+                },
+                "approved_at": {
+                    "type": "string"
+                },
+                "approved_by": {
+                    "type": "integer"
+                },
+                "approver": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "available_stock": {
+                    "type": "integer"
+                },
+                "category": {
+                    "$ref": "#/definitions/model.Category"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "condition": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "partner": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    ]
+                },
+                "partner_id": {
+                    "type": "integer"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "rejection_reason": {
+                    "type": "string"
+                },
+                "rental_price_per_day": {
+                    "type": "number"
+                },
+                "security_deposit": {
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Payment": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "booking": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Booking"
+                        }
+                    ]
+                },
+                "booking_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "failed_at": {
+                    "type": "string"
+                },
+                "failure_reason": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "provider": {
+                    "$ref": "#/definitions/model.PaymentProvider"
+                },
+                "provider_payment_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/model.PaymentStatus"
+                }
+            }
         },
         "model.PaymentProvider": {
             "type": "string",
@@ -3144,6 +3325,90 @@ const docTemplate = `{
                 "PaymentFailed",
                 "PaymentRefunded"
             ]
+        },
+        "model.Review": {
+            "type": "object",
+            "required": [
+                "rating"
+            ],
+            "properties": {
+                "booking": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Booking"
+                        }
+                    ]
+                },
+                "booking_id": {
+                    "type": "integer"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "game": {
+                    "$ref": "#/definitions/model.Game"
+                },
+                "game_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/model.UserRole"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "model.UserRole": {
             "type": "string",

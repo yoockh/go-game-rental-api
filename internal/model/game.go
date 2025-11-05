@@ -27,7 +27,7 @@ type Game struct {
 	RentalPricePerDay float64        `gorm:"type:decimal(10,2);not null" json:"rental_price_per_day" validate:"required,gt=0"`
 	SecurityDeposit   float64        `gorm:"type:decimal(10,2);default:0" json:"security_deposit"`
 	Condition         string         `gorm:"default:excellent" json:"condition"`
-	Images            pq.StringArray `gorm:"type:text[]" json:"images,omitempty"`
+	Images            pq.StringArray `gorm:"type:text[]" json:"images,omitempty" swaggertype:"array,string"`
 	IsActive          bool           `gorm:"default:false" json:"is_active"`
 	ApprovalStatus    ApprovalStatus `gorm:"type:approval_status;default:pending_approval" json:"approval_status"`
 	ApprovedBy        *uint          `json:"approved_by,omitempty"`

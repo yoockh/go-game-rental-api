@@ -33,7 +33,7 @@ func NewPaymentHandler(paymentService service.PaymentService) *PaymentHandler {
 // @Security BearerAuth
 // @Param booking_id path int true "Booking ID"
 // @Param request body dto.CreatePaymentRequest true "Payment details"
-// @Success 201 {object} dto.PaymentDTO "Payment created successfully"
+// @Success 201 {object} model.Payment "Payment created successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid input"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Router /bookings/{booking_id}/payments [post]
@@ -72,7 +72,7 @@ func (h *PaymentHandler) CreatePayment(c echo.Context) error {
 // @Produce json
 // @Security BearerAuth
 // @Param booking_id path int true "Booking ID"
-// @Success 200 {object} dto.PaymentDTO "Payment retrieved successfully"
+// @Success 200 {object} model.Payment "Payment retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid booking ID"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "Payment not found"
@@ -104,7 +104,7 @@ func (h *PaymentHandler) GetPaymentByBooking(c echo.Context) error {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Payment ID"
-// @Success 200 {object} dto.PaymentDTO "Payment retrieved successfully"
+// @Success 200 {object} model.Payment "Payment retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid payment ID"
 // @Failure 404 {object} map[string]interface{} "Payment not found"
 // @Router /payments/{id} [get]

@@ -103,7 +103,7 @@ func (h *BookingHandler) GetMyBookings(c echo.Context) error {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Booking ID"
-// @Success 200 {object} dto.BookingDTO "Booking retrieved successfully"
+// @Success 200 {object} map[string]interface{} "Booking retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid booking ID"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "Booking not found"
@@ -152,16 +152,7 @@ func (h *BookingHandler) CancelBooking(c echo.Context) error {
 
 	err := h.bookingService.CancelBooking(userID, bookingID)
 	if err != nil {
-		switch err {
-		case service.ErrBookingNotFound:
-			return myResponse.NotFound(c, err.Error())
-		case service.ErrBookingNotOwned:
-			return myResponse.Forbidden(c, err.Error())
-		case service.ErrBookingCannotCancel:
-			return myResponse.BadRequest(c, err.Error()) // 409 would be better but keeping 400
-		default:
-			return myResponse.BadRequest(c, err.Error())
-		}
+		return utils.MapServiceError(c, err)
 	}
 
 	return myResponse.Success(c, "Booking cancelled successfully", nil)
@@ -202,7 +193,7 @@ func (h *BookingHandler) GetAllBookings(c echo.Context) error {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Booking ID"
-// @Success 200 {object} dto.BookingDTO "Booking retrieved successfully"
+// @Success 200 {object} map[string]interface{} "Booking retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid booking ID"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "Booking not found"

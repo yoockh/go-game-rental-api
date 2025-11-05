@@ -1,63 +1,5 @@
 basePath: /
 definitions:
-  dto.BookingDTO:
-    properties:
-      created_at:
-        type: string
-      daily_price:
-        type: number
-      end_date:
-        type: string
-      game:
-        $ref: '#/definitions/dto.GameDTO'
-      game_id:
-        type: integer
-      handover_confirmed_at:
-        type: string
-      id:
-        type: integer
-      notes:
-        type: string
-      partner:
-        $ref: '#/definitions/dto.UserDTO'
-      partner_id:
-        type: integer
-      payment:
-        $ref: '#/definitions/dto.PaymentDTO'
-      rental_days:
-        type: integer
-      return_confirmed_at:
-        type: string
-      review:
-        $ref: '#/definitions/dto.ReviewDTO'
-      security_deposit:
-        type: number
-      start_date:
-        type: string
-      status:
-        $ref: '#/definitions/model.BookingStatus'
-      total_amount:
-        type: number
-      total_rental_price:
-        type: number
-      updated_at:
-        type: string
-      user:
-        $ref: '#/definitions/dto.UserDTO'
-      user_id:
-        type: integer
-    type: object
-  dto.CategoryDTO:
-    properties:
-      description:
-        type: string
-      id:
-        type: integer
-      is_active:
-        type: boolean
-      name:
-        type: string
-    type: object
   dto.CreateBookingRequest:
     properties:
       end_date:
@@ -180,79 +122,24 @@ definitions:
     required:
     - rating
     type: object
-  dto.GameDTO:
+  dto.LoginRequest:
     properties:
-      approval_status:
-        $ref: '#/definitions/model.ApprovalStatus'
-      approved_at:
+      email:
         type: string
-      approved_by:
-        type: integer
-      approver:
-        $ref: '#/definitions/dto.UserDTO'
-      available_stock:
-        type: integer
-      category:
-        $ref: '#/definitions/dto.CategoryDTO'
-      category_id:
-        type: integer
-      condition:
+      password:
         type: string
-      created_at:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-      images:
-        items:
-          type: string
-        type: array
-      is_active:
-        type: boolean
-      name:
-        type: string
-      partner:
-        $ref: '#/definitions/dto.UserDTO'
-      partner_id:
-        type: integer
-      platform:
-        type: string
-      rejection_reason:
-        type: string
-      rental_price_per_day:
-        type: number
-      security_deposit:
-        type: number
-      stock:
-        type: integer
-      updated_at:
-        type: string
+    required:
+    - email
+    - password
     type: object
-  dto.PaymentDTO:
+  dto.LoginResponse:
     properties:
-      amount:
-        type: number
-      booking_id:
-        type: integer
-      created_at:
+      access_token:
         type: string
-      failed_at:
+      expires_at:
         type: string
-      failure_reason:
-        type: string
-      id:
-        type: integer
-      paid_at:
-        type: string
-      payment_method:
-        type: string
-      provider:
-        $ref: '#/definitions/model.PaymentProvider'
-      provider_payment_id:
-        type: string
-      status:
-        $ref: '#/definitions/model.PaymentStatus'
+      user:
+        $ref: '#/definitions/model.User'
     type: object
   dto.PaymentWebhookRequest:
     properties:
@@ -268,28 +155,32 @@ definitions:
     - provider_payment_id
     - status
     type: object
-  dto.ReviewDTO:
+  dto.RefreshTokenRequest:
     properties:
-      booking_id:
-        type: integer
-      comment:
+      refresh_token:
         type: string
-      created_at:
+    required:
+    - refresh_token
+    type: object
+  dto.RegisterRequest:
+    properties:
+      address:
         type: string
-      game:
-        $ref: '#/definitions/dto.GameDTO'
-      game_id:
-        type: integer
-      id:
-        type: integer
-      rating:
-        type: integer
-      updated_at:
+      email:
         type: string
-      user:
-        $ref: '#/definitions/dto.UserDTO'
-      user_id:
-        type: integer
+      full_name:
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        minLength: 10
+        type: string
+    required:
+    - email
+    - full_name
+    - password
     type: object
   dto.UpdateCategoryRequest:
     properties:
@@ -358,23 +249,6 @@ definitions:
     required:
     - role
     type: object
-  dto.UserDTO:
-    properties:
-      address:
-        type: string
-      email:
-        type: string
-      full_name:
-        type: string
-      id:
-        type: integer
-      is_active:
-        type: boolean
-      phone:
-        type: string
-      role:
-        $ref: '#/definitions/model.UserRole'
-    type: object
   model.ApprovalStatus:
     enum:
     - pending_approval
@@ -385,6 +259,58 @@ definitions:
     - ApprovalPending
     - ApprovalApproved
     - ApprovalRejected
+  model.Booking:
+    properties:
+      created_at:
+        type: string
+      daily_price:
+        type: number
+      end_date:
+        type: string
+      game:
+        $ref: '#/definitions/model.Game'
+      game_id:
+        type: integer
+      handover_confirmed_at:
+        type: string
+      id:
+        type: integer
+      notes:
+        type: string
+      partner:
+        $ref: '#/definitions/model.User'
+      partner_id:
+        type: integer
+      payment:
+        $ref: '#/definitions/model.Payment'
+      rental_days:
+        type: integer
+      return_confirmed_at:
+        type: string
+      review:
+        $ref: '#/definitions/model.Review'
+      security_deposit:
+        type: number
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/model.BookingStatus'
+      total_amount:
+        type: number
+      total_rental_price:
+        type: number
+      updated_at:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/model.User'
+        description: Relationships
+      user_id:
+        type: integer
+    required:
+    - end_date
+    - start_date
+    type: object
   model.BookingStatus:
     enum:
     - pending_payment
@@ -401,6 +327,21 @@ definitions:
     - BookingCompleted
     - BookingCancelled
     - BookingDisputed
+  model.Category:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
   model.DisputeType:
     enum:
     - payment
@@ -415,6 +356,90 @@ definitions:
     - DisputeLateReturn
     - DisputeNoShow
     - DisputeOther
+  model.Game:
+    properties:
+      approval_status:
+        $ref: '#/definitions/model.ApprovalStatus'
+      approved_at:
+        type: string
+      approved_by:
+        type: integer
+      approver:
+        $ref: '#/definitions/model.User'
+      available_stock:
+        type: integer
+      category:
+        $ref: '#/definitions/model.Category'
+      category_id:
+        type: integer
+      condition:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          type: string
+        type: array
+      is_active:
+        type: boolean
+      name:
+        type: string
+      partner:
+        allOf:
+        - $ref: '#/definitions/model.User'
+        description: Relationships
+      partner_id:
+        type: integer
+      platform:
+        type: string
+      rejection_reason:
+        type: string
+      rental_price_per_day:
+        type: number
+      security_deposit:
+        type: number
+      stock:
+        minimum: 1
+        type: integer
+      updated_at:
+        type: string
+    required:
+    - name
+    - rental_price_per_day
+    type: object
+  model.Payment:
+    properties:
+      amount:
+        type: number
+      booking:
+        allOf:
+        - $ref: '#/definitions/model.Booking'
+        description: Relationships
+      booking_id:
+        type: integer
+      created_at:
+        type: string
+      failed_at:
+        type: string
+      failure_reason:
+        type: string
+      id:
+        type: integer
+      paid_at:
+        type: string
+      payment_method:
+        type: string
+      provider:
+        $ref: '#/definitions/model.PaymentProvider'
+      provider_payment_id:
+        type: string
+      status:
+        $ref: '#/definitions/model.PaymentStatus'
+    type: object
   model.PaymentProvider:
     enum:
     - stripe
@@ -435,6 +460,61 @@ definitions:
     - PaymentPaid
     - PaymentFailed
     - PaymentRefunded
+  model.Review:
+    properties:
+      booking:
+        allOf:
+        - $ref: '#/definitions/model.Booking'
+        description: Relationships
+      booking_id:
+        type: integer
+      comment:
+        type: string
+      created_at:
+        type: string
+      game:
+        $ref: '#/definitions/model.Game'
+      game_id:
+        type: integer
+      id:
+        type: integer
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+      user_id:
+        type: integer
+    required:
+    - rating
+    type: object
+  model.User:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/model.UserRole'
+      updated_at:
+        type: string
+    required:
+    - email
+    - full_name
+    type: object
   model.UserRole:
     enum:
     - customer
@@ -518,7 +598,8 @@ paths:
         "200":
           description: Booking retrieved successfully
           schema:
-            $ref: '#/definitions/dto.BookingDTO'
+            additionalProperties: true
+            type: object
         "400":
           description: Invalid booking ID
           schema:
@@ -1084,7 +1165,7 @@ paths:
         "200":
           description: User retrieved successfully
           schema:
-            $ref: '#/definitions/dto.UserDTO'
+            $ref: '#/definitions/model.User'
         "400":
           description: Invalid user ID
           schema:
@@ -1194,6 +1275,99 @@ paths:
       summary: Toggle user status
       tags:
       - Admin - Users
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh expired JWT token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token refreshed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid refresh token
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh JWT token
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input or validation error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register user
+      tags:
+      - Authentication
   /bookings:
     post:
       consumes:
@@ -1286,7 +1460,7 @@ paths:
         "200":
           description: Payment retrieved successfully
           schema:
-            $ref: '#/definitions/dto.PaymentDTO'
+            $ref: '#/definitions/model.Payment'
         "400":
           description: Invalid booking ID
           schema:
@@ -1329,7 +1503,7 @@ paths:
         "201":
           description: Payment created successfully
           schema:
-            $ref: '#/definitions/dto.PaymentDTO'
+            $ref: '#/definitions/model.Payment'
         "400":
           description: Invalid input
           schema:
@@ -1402,7 +1576,8 @@ paths:
         "200":
           description: Booking retrieved successfully
           schema:
-            $ref: '#/definitions/dto.BookingDTO'
+            additionalProperties: true
+            type: object
         "400":
           description: Invalid booking ID
           schema:
@@ -1529,7 +1704,7 @@ paths:
         "200":
           description: Category retrieved successfully
           schema:
-            $ref: '#/definitions/dto.CategoryDTO'
+            $ref: '#/definitions/model.Category'
         "400":
           description: Invalid category ID
           schema:
@@ -1668,7 +1843,7 @@ paths:
         "200":
           description: Game retrieved successfully
           schema:
-            $ref: '#/definitions/dto.GameDTO'
+            $ref: '#/definitions/model.Game'
         "400":
           description: Invalid game ID
           schema:
@@ -2006,7 +2181,7 @@ paths:
         "200":
           description: Payment retrieved successfully
           schema:
-            $ref: '#/definitions/dto.PaymentDTO'
+            $ref: '#/definitions/model.Payment'
         "400":
           description: Invalid payment ID
           schema:
@@ -2033,7 +2208,7 @@ paths:
         "200":
           description: Profile retrieved successfully
           schema:
-            $ref: '#/definitions/dto.UserDTO'
+            $ref: '#/definitions/model.User'
         "401":
           description: Unauthorized
           schema:
@@ -2061,7 +2236,7 @@ paths:
         "200":
           description: Profile updated successfully
           schema:
-            $ref: '#/definitions/dto.UserDTO'
+            $ref: '#/definitions/model.User'
         "400":
           description: Invalid input
           schema:

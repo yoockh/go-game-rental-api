@@ -24,6 +24,16 @@ func NewAuthHandler(userService service.UserService, jwtSecret string) *AuthHand
 	}
 }
 
+// Register godoc
+// @Summary Register user
+// @Description Register a new user account
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "Registration details"
+// @Success 201 {object} map[string]interface{} "User registered successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input or validation error"
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c echo.Context) error {
 	var req dto.RegisterRequest
 	if err := c.Bind(&req); err != nil {
@@ -42,6 +52,17 @@ func (h *AuthHandler) Register(c echo.Context) error {
 	return myResponse.Created(c, "User registered successfully", user)
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user and return JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login credentials"
+// @Success 200 {object} dto.LoginResponse "Login successful"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Invalid credentials"
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c echo.Context) error {
 	var req dto.LoginRequest
 	if err := c.Bind(&req); err != nil {
@@ -60,6 +81,17 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	return myResponse.Success(c, "Login successful", response)
 }
 
+// RefreshToken godoc
+// @Summary Refresh JWT token
+// @Description Refresh expired JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.RefreshTokenRequest true "Refresh token"
+// @Success 200 {object} map[string]interface{} "Token refreshed successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Invalid refresh token"
+// @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	var req dto.RefreshTokenRequest
 	if err := c.Bind(&req); err != nil {

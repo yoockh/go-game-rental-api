@@ -55,7 +55,7 @@ func (h *GameHandler) GetAllGames(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "Game ID"
-// @Success 200 {object} dto.GameDTO "Game retrieved successfully"
+// @Success 200 {object} model.Game "Game retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid game ID"
 // @Failure 404 {object} map[string]interface{} "Game not found"
 // @Router /games/{id} [get]

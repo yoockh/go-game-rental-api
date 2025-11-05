@@ -31,7 +31,7 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} dto.UserDTO "Profile retrieved successfully"
+// @Success 200 {object} model.User "Profile retrieved successfully"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Router /users/me [get]
 func (h *UserHandler) GetMyProfile(c echo.Context) error {
@@ -56,7 +56,7 @@ func (h *UserHandler) GetMyProfile(c echo.Context) error {
 // @Produce json
 // @Security BearerAuth
 // @Param request body dto.UpdateProfileRequest true "Profile update details"
-// @Success 200 {object} dto.UserDTO "Profile updated successfully"
+// @Success 200 {object} model.User "Profile updated successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid input"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Router /users/me [put]
@@ -122,7 +122,7 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "User ID"
-// @Success 200 {object} dto.UserDTO "User retrieved successfully"
+// @Success 200 {object} model.User "User retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid user ID"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 403 {object} map[string]interface{} "Forbidden"

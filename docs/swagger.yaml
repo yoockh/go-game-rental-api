@@ -1,0 +1,2114 @@
+basePath: /
+definitions:
+  dto.BookingDTO:
+    properties:
+      created_at:
+        type: string
+      daily_price:
+        type: number
+      end_date:
+        type: string
+      game:
+        $ref: '#/definitions/dto.GameDTO'
+      game_id:
+        type: integer
+      handover_confirmed_at:
+        type: string
+      id:
+        type: integer
+      notes:
+        type: string
+      partner:
+        $ref: '#/definitions/dto.UserDTO'
+      partner_id:
+        type: integer
+      payment:
+        $ref: '#/definitions/dto.PaymentDTO'
+      rental_days:
+        type: integer
+      return_confirmed_at:
+        type: string
+      review:
+        $ref: '#/definitions/dto.ReviewDTO'
+      security_deposit:
+        type: number
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/model.BookingStatus'
+      total_amount:
+        type: number
+      total_rental_price:
+        type: number
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserDTO'
+      user_id:
+        type: integer
+    type: object
+  dto.CategoryDTO:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+    type: object
+  dto.CreateBookingRequest:
+    properties:
+      end_date:
+        type: string
+      game_id:
+        type: integer
+      notes:
+        type: string
+      start_date:
+        type: string
+    required:
+    - end_date
+    - game_id
+    - start_date
+    type: object
+  dto.CreateCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  dto.CreateDisputeRequest:
+    properties:
+      description:
+        minLength: 10
+        type: string
+      title:
+        minLength: 5
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/model.DisputeType'
+        enum:
+        - payment
+        - item_condition
+        - late_return
+        - no_show
+        - other
+    required:
+    - description
+    - title
+    - type
+    type: object
+  dto.CreateGameRequest:
+    properties:
+      category_id:
+        type: integer
+      condition:
+        enum:
+        - excellent
+        - good
+        - fair
+        type: string
+      description:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      name:
+        minLength: 2
+        type: string
+      platform:
+        type: string
+      rental_price_per_day:
+        type: number
+      security_deposit:
+        minimum: 0
+        type: number
+      stock:
+        minimum: 1
+        type: integer
+    required:
+    - category_id
+    - name
+    - rental_price_per_day
+    - stock
+    type: object
+  dto.CreatePartnerApplicationRequest:
+    properties:
+      business_address:
+        minLength: 10
+        type: string
+      business_description:
+        type: string
+      business_name:
+        minLength: 2
+        type: string
+      business_phone:
+        minLength: 10
+        type: string
+    required:
+    - business_address
+    - business_name
+    type: object
+  dto.CreatePaymentRequest:
+    properties:
+      provider:
+        allOf:
+        - $ref: '#/definitions/model.PaymentProvider'
+        enum:
+        - stripe
+        - midtrans
+    required:
+    - provider
+    type: object
+  dto.CreateReviewRequest:
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - rating
+    type: object
+  dto.GameDTO:
+    properties:
+      approval_status:
+        $ref: '#/definitions/model.ApprovalStatus'
+      approved_at:
+        type: string
+      approved_by:
+        type: integer
+      approver:
+        $ref: '#/definitions/dto.UserDTO'
+      available_stock:
+        type: integer
+      category:
+        $ref: '#/definitions/dto.CategoryDTO'
+      category_id:
+        type: integer
+      condition:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          type: string
+        type: array
+      is_active:
+        type: boolean
+      name:
+        type: string
+      partner:
+        $ref: '#/definitions/dto.UserDTO'
+      partner_id:
+        type: integer
+      platform:
+        type: string
+      rejection_reason:
+        type: string
+      rental_price_per_day:
+        type: number
+      security_deposit:
+        type: number
+      stock:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  dto.PaymentDTO:
+    properties:
+      amount:
+        type: number
+      booking_id:
+        type: integer
+      created_at:
+        type: string
+      failed_at:
+        type: string
+      failure_reason:
+        type: string
+      id:
+        type: integer
+      paid_at:
+        type: string
+      payment_method:
+        type: string
+      provider:
+        $ref: '#/definitions/model.PaymentProvider'
+      provider_payment_id:
+        type: string
+      status:
+        $ref: '#/definitions/model.PaymentStatus'
+    type: object
+  dto.PaymentWebhookRequest:
+    properties:
+      failure_reason:
+        type: string
+      payment_method:
+        type: string
+      provider_payment_id:
+        type: string
+      status:
+        type: string
+    required:
+    - provider_payment_id
+    - status
+    type: object
+  dto.ReviewDTO:
+    properties:
+      booking_id:
+        type: integer
+      comment:
+        type: string
+      created_at:
+        type: string
+      game:
+        $ref: '#/definitions/dto.GameDTO'
+      game_id:
+        type: integer
+      id:
+        type: integer
+      rating:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserDTO'
+      user_id:
+        type: integer
+    type: object
+  dto.UpdateCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  dto.UpdateGameRequest:
+    properties:
+      category_id:
+        type: integer
+      condition:
+        enum:
+        - excellent
+        - good
+        - fair
+        type: string
+      description:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      name:
+        minLength: 2
+        type: string
+      platform:
+        type: string
+      rental_price_per_day:
+        type: number
+      security_deposit:
+        minimum: 0
+        type: number
+    required:
+    - category_id
+    - name
+    - rental_price_per_day
+    type: object
+  dto.UpdateProfileRequest:
+    properties:
+      address:
+        type: string
+      full_name:
+        minLength: 2
+        type: string
+      phone:
+        minLength: 10
+        type: string
+    required:
+    - full_name
+    type: object
+  dto.UpdateUserRoleRequest:
+    properties:
+      role:
+        allOf:
+        - $ref: '#/definitions/model.UserRole'
+        enum:
+        - customer
+        - partner
+        - admin
+    required:
+    - role
+    type: object
+  dto.UserDTO:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/model.UserRole'
+    type: object
+  model.ApprovalStatus:
+    enum:
+    - pending_approval
+    - approved
+    - rejected
+    type: string
+    x-enum-varnames:
+    - ApprovalPending
+    - ApprovalApproved
+    - ApprovalRejected
+  model.BookingStatus:
+    enum:
+    - pending_payment
+    - confirmed
+    - active
+    - completed
+    - cancelled
+    - disputed
+    type: string
+    x-enum-varnames:
+    - BookingPendingPayment
+    - BookingConfirmed
+    - BookingActive
+    - BookingCompleted
+    - BookingCancelled
+    - BookingDisputed
+  model.DisputeType:
+    enum:
+    - payment
+    - item_condition
+    - late_return
+    - no_show
+    - other
+    type: string
+    x-enum-varnames:
+    - DisputePayment
+    - DisputeItemCondition
+    - DisputeLateReturn
+    - DisputeNoShow
+    - DisputeOther
+  model.PaymentProvider:
+    enum:
+    - stripe
+    - midtrans
+    type: string
+    x-enum-varnames:
+    - ProviderStripe
+    - ProviderMidtrans
+  model.PaymentStatus:
+    enum:
+    - pending
+    - paid
+    - failed
+    - refunded
+    type: string
+    x-enum-varnames:
+    - PaymentPending
+    - PaymentPaid
+    - PaymentFailed
+    - PaymentRefunded
+  model.UserRole:
+    enum:
+    - customer
+    - partner
+    - admin
+    - super_admin
+    type: string
+    x-enum-varnames:
+    - RoleCustomer
+    - RolePartner
+    - RoleAdmin
+    - RoleSuperAdmin
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Video Game Rental API adalah sistem backend untuk platform penyewaan
+    game fisik
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Video Game Rental API
+  version: "1.0"
+paths:
+  /admin/bookings:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all bookings (Admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bookings retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all bookings
+      tags:
+      - Admin - Bookings
+  /admin/bookings/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific booking (Admin only)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.BookingDTO'
+        "400":
+          description: Invalid booking ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Booking not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get booking detail (Admin)
+      tags:
+      - Admin - Bookings
+  /admin/categories:
+    post:
+      consumes:
+      - application/json
+      description: Create a new game category (Admin only)
+      parameters:
+      - description: Category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Category created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create category
+      tags:
+      - Admin - Categories
+  /admin/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a category (Admin only)
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid category ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete category
+      tags:
+      - Admin - Categories
+    put:
+      consumes:
+      - application/json
+      description: Update category information (Admin only)
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update category
+      tags:
+      - Admin - Categories
+  /admin/disputes:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all disputes (Admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Disputes retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all disputes
+      tags:
+      - Admin - Disputes
+  /admin/listings:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all game listings for approval (Admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Game listings retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get game listings
+      tags:
+      - Admin - Games
+  /admin/listings/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: Approve a pending game listing (Admin only)
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Game listing approved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid game ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve game listing
+      tags:
+      - Admin - Games
+  /admin/partner-applications:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all partner applications (Admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Partner applications retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get partner applications
+      tags:
+      - Admin - Partners
+  /admin/partner-applications/{id}/approve:
+    patch:
+      consumes:
+      - application/json
+      description: Approve a pending partner application (Admin only)
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Partner application approved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid application ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve partner application
+      tags:
+      - Admin - Partners
+  /admin/partner-applications/{id}/reject:
+    patch:
+      consumes:
+      - application/json
+      description: Reject a pending partner application (Admin only)
+      parameters:
+      - description: Application ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Rejection reason
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Partner application rejected successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reject partner application
+      tags:
+      - Admin - Partners
+  /admin/payments:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all payments (Admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payments retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all payments
+      tags:
+      - Admin - Payments
+  /admin/payments/status:
+    get:
+      consumes:
+      - application/json
+      description: Get list of payments filtered by status (Admin only)
+      parameters:
+      - description: Payment status
+        enum:
+        - pending
+        - completed
+        - failed
+        - refunded
+        in: query
+        name: status
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payments retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payments by status
+      tags:
+      - Admin - Payments
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all users (Admin only)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Users retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - Admin - Users
+  /admin/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a user (Admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - Admin - Users
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific user (Admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user detail
+      tags:
+      - Admin - Users
+  /admin/users/{id}/role:
+    patch:
+      consumes:
+      - application/json
+      description: Update user role (Admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Role update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User role updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user role
+      tags:
+      - Admin - Users
+  /admin/users/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Ban or unban a user (Admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User status updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Toggle user status
+      tags:
+      - Admin - Users
+  /bookings:
+    post:
+      consumes:
+      - application/json
+      description: Create a new game rental booking
+      parameters:
+      - description: Booking details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Booking created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create booking
+      tags:
+      - Bookings
+  /bookings/{booking_id}/disputes:
+    post:
+      consumes:
+      - application/json
+      description: Create a dispute for a booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      - description: Dispute details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDisputeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Dispute created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create dispute
+      tags:
+      - Disputes
+  /bookings/{booking_id}/payments:
+    get:
+      consumes:
+      - application/json
+      description: Get payment information for a specific booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.PaymentDTO'
+        "400":
+          description: Invalid booking ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Payment not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payment by booking
+      tags:
+      - Payments
+    post:
+      consumes:
+      - application/json
+      description: Create payment for a booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      - description: Payment details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Payment created successfully
+          schema:
+            $ref: '#/definitions/dto.PaymentDTO'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create payment
+      tags:
+      - Payments
+  /bookings/{booking_id}/reviews:
+    post:
+      consumes:
+      - application/json
+      description: Create a review for a completed booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      - description: Review details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Review created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create review
+      tags:
+      - Reviews
+  /bookings/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.BookingDTO'
+        "400":
+          description: Invalid booking ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Booking not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get booking detail
+      tags:
+      - Bookings
+  /bookings/{id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel a pending booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking cancelled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid booking ID or booking cannot be cancelled
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel booking
+      tags:
+      - Bookings
+  /bookings/my:
+    get:
+      consumes:
+      - application/json
+      description: Get list of current user's bookings
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bookings retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my bookings
+      tags:
+      - Bookings
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all game categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all categories
+      tags:
+      - Categories
+  /categories/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific category
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.CategoryDTO'
+        "400":
+          description: Invalid category ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get category detail
+      tags:
+      - Categories
+  /disputes/my:
+    get:
+      consumes:
+      - application/json
+      description: Get list of current user's disputes
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Disputes retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get my disputes
+      tags:
+      - Disputes
+  /games:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all available games (public)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Games retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all games
+      tags:
+      - Games
+  /games/{game_id}/reviews:
+    get:
+      consumes:
+      - application/json
+      description: Get list of reviews for a specific game
+      parameters:
+      - description: Game ID
+        in: path
+        name: game_id
+        required: true
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reviews retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid game ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get game reviews
+      tags:
+      - Reviews
+  /games/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific game
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Game retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.GameDTO'
+        "400":
+          description: Invalid game ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Game not found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get game detail
+      tags:
+      - Games
+  /games/search:
+    get:
+      consumes:
+      - application/json
+      description: Search games by name, description, or platform
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Games search results
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Search query required
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search games
+      tags:
+      - Games
+  /partner/apply:
+    post:
+      consumes:
+      - application/json
+      description: Submit application to become a game rental partner
+      parameters:
+      - description: Partner application details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePartnerApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Partner application submitted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Apply for partner
+      tags:
+      - Partner
+  /partner/bookings:
+    get:
+      consumes:
+      - application/json
+      description: Get list of bookings for partner's games
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Partner bookings retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - Partner role required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get partner bookings
+      tags:
+      - Partner
+  /partner/bookings/{id}/confirm-handover:
+    patch:
+      consumes:
+      - application/json
+      description: Confirm that game has been handed over to customer
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Handover confirmed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid booking ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - Partner role required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Confirm game handover
+      tags:
+      - Partner
+  /partner/bookings/{id}/confirm-return:
+    patch:
+      consumes:
+      - application/json
+      description: Confirm that game has been returned by customer
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return confirmed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid booking ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden - Partner role required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Confirm game return
+      tags:
+      - Partner
+  /partner/games:
+    get:
+      consumes:
+      - application/json
+      description: Get list of games owned by the partner
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Partner games retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get partner's games
+      tags:
+      - Partner
+    post:
+      consumes:
+      - application/json
+      description: Create a new game listing (Partner only)
+      parameters:
+      - description: Game details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateGameRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Game created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create new game
+      tags:
+      - Partner
+  /partner/games/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update game information (Partner only)
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated game details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateGameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Game updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update game
+      tags:
+      - Partner
+  /payments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed payment information
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.PaymentDTO'
+        "400":
+          description: Invalid payment ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Payment not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payment detail
+      tags:
+      - Payments
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Get current user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update current user's profile information
+      parameters:
+      - description: Profile update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update current user profile
+      tags:
+      - Users
+  /webhooks/payments:
+    post:
+      consumes:
+      - application/json
+      description: Receive payment status updates from payment provider
+      parameters:
+      - description: Webhook payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PaymentWebhookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Webhook processed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid webhook payload
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Payment webhook
+      tags:
+      - Webhooks
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

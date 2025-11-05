@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
+	"github.com/Yoochan45/go-game-rental-api/internal/integration/payment"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository"
 )
@@ -30,10 +32,11 @@ type PaymentService interface {
 }
 
 type paymentService struct {
-	paymentRepo    repository.PaymentRepository
-	bookingRepo    repository.BookingRepository
-	userRepo       repository.UserRepository
-	bookingService BookingService
+	paymentRepo     repository.PaymentRepository
+	bookingRepo     repository.BookingRepository
+	userRepo        repository.UserRepository
+	bookingService  BookingService
+	paymentGateway  payment.PaymentGateway
 }
 
 func NewPaymentService(
@@ -41,12 +44,14 @@ func NewPaymentService(
 	bookingRepo repository.BookingRepository,
 	userRepo repository.UserRepository,
 	bookingService BookingService,
+	paymentGateway payment.PaymentGateway,
 ) PaymentService {
 	return &paymentService{
-		paymentRepo:    paymentRepo,
-		bookingRepo:    bookingRepo,
-		userRepo:       userRepo,
-		bookingService: bookingService,
+		paymentRepo:     paymentRepo,
+		bookingRepo:     bookingRepo,
+		userRepo:        userRepo,
+		bookingService:  bookingService,
+		paymentGateway:  paymentGateway,
 	}
 }
 
@@ -84,6 +89,29 @@ func (s *paymentService) CreatePayment(userID uint, bookingID uint, provider mod
 	if err != nil {
 		return nil, err
 	}
+
+	// Create charge with payment gateway
+	orderID := fmt.Sprintf("booking-%d", bookingID)
+	paymentType := "credit_card" // Default, could be configurable
+	if provider == model.ProviderMidtrans {
+		paymentType = "bank_transfer"
+	}
+
+	txID, _, err := s.paymentGateway.CreateCharge(
+		context.Background(),
+		orderID,
+		int64(payment.Amount*100), // Convert to cents
+		paymentType,
+		nil,
+	)
+	if err != nil {
+		// Payment gateway failed, but payment record exists
+		return payment, fmt.Errorf("payment gateway error: %w", err)
+	}
+
+	// Update payment with provider transaction ID
+	payment.ProviderPaymentID = &txID
+	s.paymentRepo.Update(payment)
 
 	return payment, nil
 }

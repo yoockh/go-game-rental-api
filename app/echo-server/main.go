@@ -29,6 +29,9 @@ import (
 	_ "github.com/Yoochan45/go-game-rental-api/docs"
 	"github.com/Yoochan45/go-game-rental-api/internal/handler"
 	"github.com/Yoochan45/go-game-rental-api/internal/integration"
+	"github.com/Yoochan45/go-game-rental-api/internal/integration/email"
+	"github.com/Yoochan45/go-game-rental-api/internal/integration/payment"
+	"github.com/Yoochan45/go-game-rental-api/internal/integration/storage"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
@@ -50,11 +53,7 @@ func main() {
 		logrus.Warn("Using default JWT secret for development")
 	}
 
-	// Validate integration environment variables
-	if err := integration.Validate(); err != nil {
-		logrus.Warn("Integration validation failed:", err)
-		logrus.Warn("Some 3rd party features may not work properly")
-	}
+
 
 	db, err := myOrm.Init(cfg.DatabaseURL)
 	if err != nil {
@@ -87,21 +86,37 @@ func main() {
 	partnerRepo := repository.NewPartnerApplicationRepository(db)
 	disputeRepo := repository.NewDisputeRepository(db)
 
+	// Initialize 3rd party integrations
+	var emailSender email.EmailSender
+	var storageClient storage.StorageClient
+	var paymentGateway payment.PaymentGateway
+
+	if err := integration.Validate(); err != nil {
+		logrus.Warn("Using mock integrations:", err)
+		emailSender = &email.MockEmailSender{}
+		storageClient = &storage.MockStorageClient{}
+		paymentGateway = &payment.MockPaymentGateway{}
+	} else {
+		emailSender = email.NewSendGridClient()
+		storageClient = storage.NewSupabaseStorageClient()
+		paymentGateway = payment.NewMidtransClient()
+	}
+
 	// Initialize services
 	userService := service.NewUserService(userRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
 	gameService := service.NewGameService(gameRepo, userRepo)
 	bookingService := service.NewBookingService(bookingRepo, gameRepo, userRepo)
-	paymentService := service.NewPaymentService(paymentRepo, bookingRepo, userRepo, bookingService)
+	paymentService := service.NewPaymentService(paymentRepo, bookingRepo, userRepo, bookingService, paymentGateway)
 	reviewService := service.NewReviewService(reviewRepo, bookingRepo)
 	partnerService := service.NewPartnerApplicationService(partnerRepo, userRepo)
 	disputeService := service.NewDisputeService(disputeRepo, bookingRepo)
 
 	// Initialize handlers
-	authHandler := handler.NewAuthHandler(userService, JwtSecret)
+	authHandler := handler.NewAuthHandler(userService, JwtSecret, emailSender)
 	userHandler := handler.NewUserHandler(userService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
-	gameHandler := handler.NewGameHandler(gameService)
+	gameHandler := handler.NewGameHandler(gameService, storageClient)
 	bookingHandler := handler.NewBookingHandler(bookingService)
 	paymentHandler := handler.NewPaymentHandler(paymentService)
 	reviewHandler := handler.NewReviewHandler(reviewService)

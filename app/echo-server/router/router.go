@@ -82,6 +82,7 @@ func RegisterRoutes(
 	partner.POST("/games", gameH.CreateGame)
 	partner.PUT("/games/:id", gameH.UpdateGame)
 	partner.GET("/games", gameH.GetPartnerGames)
+	partner.POST("/games/:id/upload-image", gameH.UploadGameImage)
 
 	// Admin routes (requires admin or super_admin role)
 	admin := protected.Group("/admin")

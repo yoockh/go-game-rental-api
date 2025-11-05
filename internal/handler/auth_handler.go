@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"fmt"
+
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
+	"github.com/Yoochan45/go-game-rental-api/internal/integration/email"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
 	"github.com/Yoochan45/go-game-rental-api/internal/utils"
 	"github.com/go-playground/validator/v10"
@@ -14,13 +17,15 @@ type AuthHandler struct {
 	userService service.UserService
 	jwtSecret   string
 	validate    *validator.Validate
+	emailSender email.EmailSender
 }
 
-func NewAuthHandler(userService service.UserService, jwtSecret string) *AuthHandler {
+func NewAuthHandler(userService service.UserService, jwtSecret string, emailSender email.EmailSender) *AuthHandler {
 	return &AuthHandler{
 		userService: userService,
 		jwtSecret:   jwtSecret,
 		validate:    utils.GetValidator(),
+		emailSender: emailSender,
 	}
 }
 
@@ -48,6 +53,21 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		logrus.WithError(err).Error("Registration failed")
 		return myResponse.BadRequest(c, err.Error())
 	}
+
+	// Kirim email welcome
+	go func() {
+		subject := "Welcome to Game Rental!"
+		htmlContent := fmt.Sprintf(`
+			<h1>Welcome %s!</h1>
+			<p>Thank you for registering at Game Rental Platform.</p>
+			<p>You can now browse and rent games from our partners.</p>
+		`, user.FullName)
+		plainText := fmt.Sprintf("Welcome %s! Thank you for registering at Game Rental Platform.", user.FullName)
+
+		if err := h.emailSender.SendEmail(c.Request().Context(), user.Email, subject, plainText, htmlContent); err != nil {
+			logrus.WithError(err).Error("Failed to send welcome email")
+		}
+	}()
 
 	return myResponse.Created(c, "User registered successfully", user)
 }
@@ -77,6 +97,21 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		logrus.WithError(err).WithField("email", req.Email).Error("Login failed")
 		return myResponse.Unauthorized(c, err.Error())
 	}
+
+	// Kirim email notifikasi login
+	go func() {
+		subject := "Login Notification"
+		htmlContent := `
+			<h2>Login Alert</h2>
+			<p>Someone just logged into your Game Rental account.</p>
+			<p>If this wasn't you, please contact support immediately.</p>
+		`
+		plainText := "Someone just logged into your Game Rental account. If this wasn't you, please contact support."
+
+		if err := h.emailSender.SendEmail(c.Request().Context(), req.Email, subject, plainText, htmlContent); err != nil {
+			logrus.WithError(err).Error("Failed to send login notification email")
+		}
+	}()
 
 	return myResponse.Success(c, "Login successful", response)
 }

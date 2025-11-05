@@ -1,10 +1,17 @@
 package handler
 
 import (
+	"fmt"
+	"io"
+	"path/filepath"
+	"strings"
+	"time"
+
 	echomw "github.com/Yoochan45/go-api-utils/pkg-echo/middleware"
 	myRequest "github.com/Yoochan45/go-api-utils/pkg-echo/request"
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
+	"github.com/Yoochan45/go-game-rental-api/internal/integration/storage"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
 	"github.com/Yoochan45/go-game-rental-api/internal/utils"
@@ -14,14 +21,16 @@ import (
 )
 
 type GameHandler struct {
-	gameService service.GameService
-	validate    *validator.Validate
+	gameService   service.GameService
+	validate      *validator.Validate
+	storageClient storage.StorageClient
 }
 
-func NewGameHandler(gameService service.GameService) *GameHandler {
+func NewGameHandler(gameService service.GameService, storageClient storage.StorageClient) *GameHandler {
 	return &GameHandler{
-		gameService: gameService,
-		validate:    utils.GetValidator(),
+		gameService:   gameService,
+		validate:      utils.GetValidator(),
+		storageClient: storageClient,
 	}
 }
 
@@ -223,4 +232,87 @@ func (h *GameHandler) GetPartnerGames(c echo.Context) error {
 
 	meta := utils.CreateMeta(params, int64(len(games)))
 	return myResponse.Paginated(c, "Partner games retrieved successfully", games, meta)
+}
+
+// UploadGameImage godoc
+// @Summary Upload game image
+// @Description Upload image for a game (Partner only)
+// @Tags Partner
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Game ID"
+// @Param image formData file true "Game image file"
+// @Success 200 {object} map[string]interface{} "Image uploaded successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
+// @Router /partner/games/{id}/upload-image [post]
+func (h *GameHandler) UploadGameImage(c echo.Context) error {
+	gameID := myRequest.PathParamUint(c, "id")
+	if gameID == 0 {
+		return myResponse.BadRequest(c, "Invalid game ID")
+	}
+
+	partnerID := echomw.CurrentUserID(c)
+
+	// Cek ownership game
+	game, err := h.gameService.GetGameDetail(gameID)
+	if err != nil {
+		return myResponse.NotFound(c, "Game not found")
+	}
+	if game.PartnerID != partnerID {
+		return myResponse.Forbidden(c, "You can only upload images for your own games")
+	}
+
+	// Get uploaded file
+	file, err := c.FormFile("image")
+	if err != nil {
+		return myResponse.BadRequest(c, "No image file provided")
+	}
+
+	// Validate file type
+	if !strings.HasPrefix(file.Header.Get("Content-Type"), "image/") {
+		return myResponse.BadRequest(c, "File must be an image")
+	}
+
+	// Validate file size (max 5MB)
+	if file.Size > 5*1024*1024 {
+		return myResponse.BadRequest(c, "File size must be less than 5MB")
+	}
+
+	// Open file
+	src, err := file.Open()
+	if err != nil {
+		return myResponse.InternalServerError(c, "Failed to open file")
+	}
+	defer src.Close()
+
+	// Read file data
+	fileData, err := io.ReadAll(src)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Failed to read file")
+	}
+
+	// Generate unique filename
+	ext := filepath.Ext(file.Filename)
+	filename := fmt.Sprintf("game-%d-%d%s", gameID, time.Now().Unix(), ext)
+	destinationPath := fmt.Sprintf("games/%s", filename)
+
+	// Upload to storage
+	imageURL, err := h.storageClient.UploadFile(
+		c.Request().Context(),
+		destinationPath,
+		filename,
+		file.Header.Get("Content-Type"),
+		fileData,
+	)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Failed to upload image: "+err.Error())
+	}
+
+	return myResponse.Success(c, "Image uploaded successfully", map[string]interface{}{
+		"image_url": imageURL,
+		"filename":  filename,
+	})
 }

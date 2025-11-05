@@ -2164,6 +2164,50 @@ paths:
       summary: Update game
       tags:
       - Partner
+  /partner/games/{id}/upload-image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload image for a game (Partner only)
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Game image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Image uploaded successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload game image
+      tags:
+      - Partner
   /payments/{id}:
     get:
       consumes:

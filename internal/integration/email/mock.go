@@ -1,4 +1,4 @@
-package integration
+package email
 
 import "context"
 
@@ -22,6 +22,15 @@ func (m *MockEmailSender) SendEmail(ctx context.Context, to, subject, plainText,
 		Subject:     subject,
 		PlainText:   plainText,
 		HTMLContent: htmlContent,
+	})
+	return nil
+}
+
+func (m *MockEmailSender) SendWithTemplate(ctx context.Context, to, templateID string, dynamicData map[string]interface{}) error {
+	m.SentEmails = append(m.SentEmails, MockEmail{
+		To:         to,
+		TemplateID: templateID,
+		Data:       dynamicData,
 	})
 	return nil
 }

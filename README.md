@@ -1,13 +1,13 @@
 # Video Game Rental API
 
 ## Overview
-Video Game Rental API adalah sistem backend berbasis Golang (Echo Framework) untuk platform penyewaan game fisik seperti kaset dan console.  
-Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer), serta fitur sistem pembayaran, review, dan approval flow.
+Video Game Rental API is a backend system built with Golang (Echo Framework) for physical game rental platform including cartridges and consoles.  
+This project implements multi-role system (Super Admin, Admin, Partner, Customer), along with payment system, review, and approval flow features.
 
 ---
 
 ## Tech Stack
-| Layer | Teknologi |
+| Layer | Technology |
 |-------|------------|
 | Backend | Go (Echo v4) |
 | Database | PostgreSQL / Supabase |
@@ -25,43 +25,58 @@ Proyek ini menerapkan sistem multi-role (Super Admin, Admin, Partner, Customer),
 
 ## Modules & Features
 
-### Auth
-- Register & Login (default role: `customer`)
-- Refresh Token
-- Role-based Access Control (RBAC)
-- JWT Middleware
+### Implemented
 
-### User
-- View & Edit Profile
+#### Auth
+-  Register & Login (default role: `customer`)
+-  JWT Authentication with bcrypt password hashing
+-  Role-based Access Control (RBAC)
+-  Refresh Token (placeholder) -- pending
 
-### Partner
-- Apply for Partner (Simple application form)
-- Manage Own Listings (CRUD Game)
-- View Bookings & Payments related to their listings
+#### User Management
+-  View & Edit Profile
+-  Admin user management (view, role update, ban/unban)
 
-### Admin
-- Approve or Reject Partner Applications
-- Approve or Reject Listings
-- Manage Users
-- Handle Disputes
+#### Partner System
+-  Apply for Partner (application form)
+-  Admin approve/reject partner applications
+-  Partner game listings (CRUD)
+-  Admin approve/reject game listings
+-  Partner view bookings for their games
 
-### Super Admin
-- Full system ownership
-- Manage Admins
-- Emergency access
+#### Game Catalog
+-  List Games (public)
+-  Game detail view
+-  Game search functionality
+-  Partner game management
 
-### Catalog
-- List Games
-- Filter by Category, Availability, or Price
-- Manage Stock & Status
+#### Booking System
+-  Create booking
+-  View user bookings
+-  Cancel booking
+-  Partner confirm handover/return
+-  Admin view all bookings
 
-### Booking & Payment
-- Create Booking (pending → paid → confirmed → completed)
-- Integrate with Payment Gateway (Stripe / Midtrans)
-- Webhook Handling for Payment Confirmation
+#### Payment System
+-  Basic payment structure
+-  Payment webhook handling
+-  Payment gateway integration (Stripe/Midtrans) -- pending
 
-### Review
-- CRUD Review untuk rental yang sudah selesai
+#### Review System
+-  Create review for completed bookings
+-  View game reviews
+
+#### Dispute System
+-  Create dispute
+-  View disputes (user & admin)
+-  Admin dispute resolution -- pending
+
+### In Development
+- Payment gateway integration (Stripe/Midtrans)
+- Email notifications
+- File upload for game images
+- Advanced filtering and search
+- Analytics dashboard
 
 ---
 
@@ -204,12 +219,19 @@ Authorization: Bearer <jwt_token>
 ---
 
 ## Third-Party Integration
-- **Database & Storage**: Supabase (Postgres + Storage)
+
+###  Implemented
+- **Database**: PostgreSQL with GORM
+- **Documentation**: Swagger (swaggo) - auto-generated
+- **Validation**: go-playground/validator v10
+- **Logging**: logrus
+
+###  Planned
+- **Storage**: Supabase Storage (for game images)
 - **Payment Gateway**: Stripe / Midtrans (sandbox mode)
 - **Email Notification**: SendGrid / Mailgun
 - **Error Tracking**: Sentry
-- **Deployment**: Heroku
-- **Docs**: Swagger auto-generated
+- **Deployment**: Heroku / Railway
 
 ---
 
@@ -228,25 +250,26 @@ Authorization: Bearer <jwt_token>
 3. Setup environment variables
    ```bash
    cp .env.example .env
-   # Edit .env dengan konfigurasi Anda
+   # Edit .env with your configuration
    ```
 
-4. Run database migrations
+4. Run the application
    ```bash
-   go run main.go migrate
+   go run app/echo-server/main.go
    ```
 
-5. Seed initial data (optional)
-   ```bash
-   go run main.go seed
+5. Access Swagger documentation
+   ```
+   http://localhost:8080/swagger/index.html
    ```
 
-6. Run the application
-   ```bash
-   go run main.go
-   # atau
-   make run
-   ```
+### Development Status
+-  **Core API**: Fully functional with all basic CRUD operations
+-  **Authentication**: JWT-based auth with role-based access control
+-  **Database**: PostgreSQL with GORM, auto-migration
+-  **Documentation**: Complete Swagger API docs
+-  **Clean Architecture**: Handler → Service → Repository pattern
+-  **3rd Party**: Payment gateways, file storage, email (planned)
 
 ---
 ## Contributor

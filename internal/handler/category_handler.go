@@ -60,15 +60,20 @@ func (h *CategoryHandler) CreateCategory(c echo.Context) error {
 	}
 
 	role := echomw.CurrentRole(c)
-	category, err := h.categoryService.CreateCategory(model.UserRole(role), &service.CreateCategoryRequest{
+
+	// Create category data
+	categoryData := &model.Category{
 		Name:        req.Name,
 		Description: &req.Description,
-	})
+		IsActive:    true,
+	}
+
+	err := h.categoryService.CreateCategory(model.UserRole(role), categoryData)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	response := dto.ToCategoryDTO(category)
+	response := dto.ToCategoryDTO(categoryData)
 	return myResponse.Created(c, "Category created successfully", response)
 }
 
@@ -87,12 +92,22 @@ func (h *CategoryHandler) UpdateCategory(c echo.Context) error {
 	}
 
 	role := echomw.CurrentRole(c)
-	category, err := h.categoryService.UpdateCategory(model.UserRole(role), categoryID, &service.UpdateCategoryRequest{
+
+	// Create update data
+	updateData := &model.Category{
 		Name:        req.Name,
 		Description: &req.Description,
-	})
+	}
+
+	err := h.categoryService.UpdateCategory(model.UserRole(role), categoryID, updateData)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Get updated category for response
+	category, err := h.categoryService.GetCategoryByID(categoryID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Failed to retrieve updated category")
 	}
 
 	response := dto.ToCategoryDTO(category)
@@ -106,9 +121,15 @@ func (h *CategoryHandler) ToggleCategoryStatus(c echo.Context) error {
 	}
 
 	role := echomw.CurrentRole(c)
-	category, err := h.categoryService.ToggleCategoryStatus(model.UserRole(role), categoryID)
+	err := h.categoryService.ToggleCategoryStatus(model.UserRole(role), categoryID)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Get updated category for response
+	category, err := h.categoryService.GetCategoryByID(categoryID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Failed to retrieve updated category")
 	}
 
 	response := dto.ToCategoryDTO(category)
@@ -131,10 +152,10 @@ func (h *CategoryHandler) DeleteCategory(c echo.Context) error {
 }
 
 func (h *CategoryHandler) GetAllCategoriesAdmin(c echo.Context) error {
-	role := echomw.CurrentRole(c)
-	categories, err := h.categoryService.GetAllCategories(model.UserRole(role))
+	// Remove role parameter since GetAllCategories doesn't need it
+	categories, err := h.categoryService.GetAllCategories()
 	if err != nil {
-		return myResponse.Forbidden(c, err.Error())
+		return myResponse.InternalServerError(c, "Failed to retrieve categories")
 	}
 
 	categoryDTOs := dto.ToCategoryDTOList(categories)

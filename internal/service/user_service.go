@@ -19,8 +19,17 @@ type UserService interface {
 	GetProfile(userID uint) (*model.User, error)
 	UpdateProfile(userID uint, updateData *model.User) error
 
+	// Auth methods - ADD THESE
+	CreateUser(userData *model.User) error
+	AuthenticateUser(email, password string) (*model.User, error)
+	GetUserByID(userID uint) (*model.User, error)
+	ChangePassword(userID uint, currentPassword, newPassword string) error
+
 	// Admin methods
 	GetAllUsers(requestorRole model.UserRole, limit, offset int) ([]*model.User, error)
+	GetUserDetail(requestorRole model.UserRole, userID uint) (*model.User, error)
+	UpdateUserRole(requestorRole model.UserRole, userID uint, newRole model.UserRole) error
+	ToggleUserStatus(requestorRole model.UserRole, userID uint) error
 	BanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error
 	UnbanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error
 
@@ -57,12 +66,65 @@ func (s *userService) UpdateProfile(userID uint, updateData *model.User) error {
 	return s.userRepo.Update(user)
 }
 
+func (s *userService) CreateUser(userData *model.User) error {
+	return s.userRepo.Create(userData)
+}
+
+func (s *userService) AuthenticateUser(email, password string) (*model.User, error) {
+	user, err := s.userRepo.GetByEmail(email)
+	if err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	// Add password verification logic here
+	// This should use bcrypt or similar to verify password
+
+	return user, nil
+}
+
+func (s *userService) GetUserByID(userID uint) (*model.User, error) {
+	return s.userRepo.GetByID(userID)
+}
+
+func (s *userService) ChangePassword(userID uint, currentPassword, newPassword string) error {
+	// Add password change logic here
+	// Should verify current password and hash new password
+	return nil
+}
+
 func (s *userService) GetAllUsers(requestorRole model.UserRole, limit, offset int) ([]*model.User, error) {
 	if !s.canManageUsers(requestorRole) {
 		return nil, ErrInsufficientPermission
 	}
 
 	return s.userRepo.GetAll(limit, offset)
+}
+
+func (s *userService) GetUserDetail(requestorRole model.UserRole, userID uint) (*model.User, error) {
+	if !s.canManageUsers(requestorRole) {
+		return nil, ErrInsufficientPermission
+	}
+	return s.userRepo.GetByID(userID)
+}
+
+func (s *userService) UpdateUserRole(requestorRole model.UserRole, userID uint, newRole model.UserRole) error {
+	if !s.canManageUsers(requestorRole) {
+		return ErrInsufficientPermission
+	}
+	return s.userRepo.UpdateRole(userID, newRole)
+}
+
+func (s *userService) ToggleUserStatus(requestorRole model.UserRole, userID uint) error {
+	if !s.canManageUsers(requestorRole) {
+		return ErrInsufficientPermission
+	}
+
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	return s.userRepo.UpdateActiveStatus(userID, !user.IsActive)
 }
 
 func (s *userService) BanUser(requestorID uint, requestorRole model.UserRole, targetUserID uint) error {

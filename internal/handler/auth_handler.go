@@ -7,6 +7,7 @@ import (
 	echomw "github.com/Yoochan45/go-api-utils/pkg-echo/middleware"
 	myRequest "github.com/Yoochan45/go-api-utils/pkg-echo/request"
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
+	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/model/dto"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
 	"github.com/go-playground/validator/v10"
@@ -46,15 +47,28 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return myResponse.InternalServerError(c, "Failed to process password")
 	}
 
-	user, err := h.userService.CreateUser(&service.CreateUserRequest{
+	// Create user data directly using model.User
+	userData := &model.User{
 		Email:    req.Email,
 		Password: hashedPassword,
 		FullName: req.FullName,
 		Phone:    &req.Phone,
 		Address:  &req.Address,
-	})
+		Role:     "customer",
+		IsActive: true,
+	}
+
+	// CreateUser only returns error, not (user, error)
+	err = h.userService.CreateUser(userData)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Use GetUserByID instead of GetUserByEmail (since it doesn't exist)
+	// userData should have ID after creation, or we get by email from repo directly
+	user, err := h.userService.GetProfile(userData.ID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "User created but failed to retrieve")
 	}
 
 	response := dto.ToUserDTO(user)
@@ -131,8 +145,8 @@ func (h *AuthHandler) RefreshToken(c echo.Context) error {
 		return myResponse.Unauthorized(c, "Invalid refresh token")
 	}
 
-	// Get user data
-	user, err := h.userService.GetUserByID(userID)
+	// Get user data - use GetProfile instead of GetUserByID
+	user, err := h.userService.GetProfile(userID)
 	if err != nil {
 		return myResponse.Unauthorized(c, "User not found")
 	}
@@ -161,7 +175,7 @@ func (h *AuthHandler) GetProfile(c echo.Context) error {
 		return myResponse.Unauthorized(c, "Unauthorized")
 	}
 
-	user, err := h.userService.GetUserByID(userID)
+	user, err := h.userService.GetProfile(userID)
 	if err != nil {
 		return myResponse.NotFound(c, "User not found")
 	}
@@ -184,13 +198,23 @@ func (h *AuthHandler) UpdateProfile(c echo.Context) error {
 		return myResponse.BadRequest(c, "Validation error: "+err.Error())
 	}
 
-	user, err := h.userService.UpdateProfile(userID, &service.UpdateProfileRequest{
+	// Create update data using model.User
+	updateData := &model.User{
 		FullName: req.FullName,
 		Phone:    &req.Phone,
 		Address:  &req.Address,
-	})
+	}
+
+	// UpdateProfile only returns error, not (user, error)
+	err := h.userService.UpdateProfile(userID, updateData)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Get updated user for response
+	user, err := h.userService.GetProfile(userID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Profile updated but failed to retrieve")
 	}
 
 	response := dto.ToUserDTO(user)

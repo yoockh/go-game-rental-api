@@ -16,17 +16,17 @@ const (
 )
 
 type User struct {
-	ID           uint           `gorm:"primarykey" json:"id"`
-	Email        string         `gorm:"uniqueIndex;not null" json:"email" validate:"required,email"`
-	PasswordHash string         `gorm:"not null" json:"-"`
-	FullName     string         `gorm:"not null" json:"full_name" validate:"required"`
-	Phone        *string        `json:"phone,omitempty"`
-	Address      *string        `json:"address,omitempty"`
-	Role         UserRole       `gorm:"type:user_role;default:customer" json:"role"`
-	IsActive     bool           `gorm:"default:true" json:"is_active"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uint           `gorm:"primarykey" json:"id"`
+	Email     string         `gorm:"uniqueIndex;not null" json:"email" validate:"required,email"`
+	Password  string         `gorm:"not null" json:"-"`
+	FullName  string         `gorm:"not null" json:"full_name" validate:"required"`
+	Phone     *string        `json:"phone,omitempty"`
+	Address   *string        `json:"address,omitempty"`
+	Role      UserRole       `gorm:"type:user_role;default:customer" json:"role"`
+	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
 	PartnerApplications []PartnerApplication `gorm:"foreignKey:UserID" json:"-"`

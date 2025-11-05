@@ -36,12 +36,17 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	}
 
 	role := echomw.CurrentRole(c)
-	users, totalCount, err := h.userService.GetAllUsers(model.UserRole(role), limit, (page-1)*limit)
+
+	// GetAllUsers returns 2 values: ([]*model.User, error), not 3
+	users, err := h.userService.GetAllUsers(model.UserRole(role), limit, (page-1)*limit)
 	if err != nil {
 		return myResponse.Forbidden(c, err.Error())
 	}
 
 	userDTOs := dto.ToUserDTOList(users)
+
+	// Calculate total count manually if needed
+	totalCount := int64(len(users))
 
 	meta := map[string]any{
 		"page":        page,
@@ -84,9 +89,17 @@ func (h *UserHandler) UpdateUserRole(c echo.Context) error {
 	}
 
 	role := echomw.CurrentRole(c)
-	user, err := h.userService.UpdateUserRole(model.UserRole(role), userID, req.Role)
+
+	// UpdateUserRole only returns error, not (user, error)
+	err := h.userService.UpdateUserRole(model.UserRole(role), userID, req.Role)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Get updated user for response
+	user, err := h.userService.GetUserDetail(model.UserRole(role), userID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Role updated but failed to retrieve user")
 	}
 
 	response := dto.ToUserDTO(user)
@@ -100,9 +113,17 @@ func (h *UserHandler) ToggleUserStatus(c echo.Context) error {
 	}
 
 	role := echomw.CurrentRole(c)
-	user, err := h.userService.ToggleUserStatus(model.UserRole(role), userID)
+
+	// ToggleUserStatus only returns error, not (user, error)
+	err := h.userService.ToggleUserStatus(model.UserRole(role), userID)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Get updated user for response
+	user, err := h.userService.GetUserDetail(model.UserRole(role), userID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Status updated but failed to retrieve user")
 	}
 
 	response := dto.ToUserDTO(user)
@@ -115,8 +136,12 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 		return myResponse.BadRequest(c, "Invalid user ID")
 	}
 
+	// Get current user info for delete operation
+	currentUserID := echomw.CurrentUserID(c)
 	role := echomw.CurrentRole(c)
-	err := h.userService.DeleteUser(model.UserRole(role), userID)
+
+	// Fix argument order: (requestorID, requestorRole, targetUserID)
+	err := h.userService.DeleteUser(currentUserID, model.UserRole(role), userID)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
 	}

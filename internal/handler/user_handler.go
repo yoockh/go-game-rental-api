@@ -23,6 +23,72 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 	}
 }
 
+// GetMyProfile godoc
+// @Summary Get current user profile
+// @Description Get current user's profile information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} dto.UserDTO "Profile retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Router /users/me [get]
+func (h *UserHandler) GetMyProfile(c echo.Context) error {
+	userID := echomw.CurrentUserID(c)
+	if userID == 0 {
+		return myResponse.Unauthorized(c, "Unauthorized")
+	}
+
+	user, err := h.userService.GetProfile(userID)
+	if err != nil {
+		return myResponse.NotFound(c, "User not found")
+	}
+
+	response := dto.ToUserDTO(user)
+	return myResponse.Success(c, "Profile retrieved successfully", response)
+}
+
+// UpdateMyProfile godoc
+// @Summary Update current user profile
+// @Description Update current user's profile information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.UpdateProfileRequest true "Profile update details"
+// @Success 200 {object} dto.UserDTO "Profile updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Router /users/me [put]
+func (h *UserHandler) UpdateMyProfile(c echo.Context) error {
+	userID := echomw.CurrentUserID(c)
+	if userID == 0 {
+		return myResponse.Unauthorized(c, "Unauthorized")
+	}
+
+	var req dto.UpdateProfileRequest
+	if err := c.Bind(&req); err != nil {
+		return myResponse.BadRequest(c, "Invalid input: "+err.Error())
+	}
+	if err := h.validate.Struct(&req); err != nil {
+		return myResponse.BadRequest(c, "Validation error: "+err.Error())
+	}
+
+	err := h.userService.UpdateProfile(userID, &req)
+	if err != nil {
+		return myResponse.BadRequest(c, err.Error())
+	}
+
+	// Get updated profile
+	user, err := h.userService.GetProfile(userID)
+	if err != nil {
+		return myResponse.InternalServerError(c, "Profile updated but failed to retrieve")
+	}
+
+	response := dto.ToUserDTO(user)
+	return myResponse.Success(c, "Profile updated successfully", response)
+}
+
 // GetAllUsers godoc
 // @Summary Get all users
 // @Description Get list of all users (Admin only)

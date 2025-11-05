@@ -140,8 +140,8 @@ func (h *GameHandler) SearchGames(c echo.Context) error {
 
 // CreateGame godoc
 // @Summary Create new game
-// @Description Create a new game listing (Admin only)
-// @Tags Admin - Games
+// @Description Create a new game listing (Partner only)
+// @Tags Partner
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -150,7 +150,7 @@ func (h *GameHandler) SearchGames(c echo.Context) error {
 // @Failure 400 {object} map[string]interface{} "Invalid input"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 403 {object} map[string]interface{} "Forbidden"
-// @Router /admin/games [post]
+// @Router /partner/games [post]
 func (h *GameHandler) CreateGame(c echo.Context) error {
 	var req dto.CreateGameRequest
 	if err := c.Bind(&req); err != nil {
@@ -160,22 +160,22 @@ func (h *GameHandler) CreateGame(c echo.Context) error {
 		return myResponse.BadRequest(c, "Validation error: "+err.Error())
 	}
 
-	adminID := echomw.CurrentUserID(c)
+	partnerID := echomw.CurrentUserID(c)
 
 	gameData := &model.Game{
+		PartnerID:         partnerID,
 		CategoryID:        req.CategoryID,
 		Name:              req.Name,
 		Description:       &req.Description,
 		Platform:          &req.Platform,
 		Stock:             req.Stock,
-		RentalPricePerDay: req.RentalPricePerDay, // Sesuai dengan field di DTO
+		RentalPricePerDay: req.RentalPricePerDay,
 		SecurityDeposit:   req.SecurityDeposit,
 		Condition:         req.Condition,
-		Images:            pq.StringArray(req.Images), // Sesuai dengan field di DTO
+		Images:            pq.StringArray(req.Images),
 	}
 
-	// CreateGame takes (adminID, gameData)
-	err := h.gameService.CreateGame(adminID, gameData)
+	err := h.gameService.CreatePartnerGame(partnerID, gameData)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
 	}
@@ -185,8 +185,8 @@ func (h *GameHandler) CreateGame(c echo.Context) error {
 
 // UpdateGame godoc
 // @Summary Update game
-// @Description Update game information (Admin only)
-// @Tags Admin - Games
+// @Description Update game information (Partner only)
+// @Tags Partner
 // @Accept json
 // @Produce json
 // @Security BearerAuth
@@ -196,7 +196,7 @@ func (h *GameHandler) CreateGame(c echo.Context) error {
 // @Failure 400 {object} map[string]interface{} "Invalid input"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 403 {object} map[string]interface{} "Forbidden"
-// @Router /admin/games/{id} [put]
+// @Router /partner/games/{id} [put]
 func (h *GameHandler) UpdateGame(c echo.Context) error {
 	gameID := myRequest.PathParamUint(c, "id")
 	if gameID == 0 {
@@ -211,7 +211,7 @@ func (h *GameHandler) UpdateGame(c echo.Context) error {
 		return myResponse.BadRequest(c, "Validation error: "+err.Error())
 	}
 
-	adminID := echomw.CurrentUserID(c)
+	partnerID := echomw.CurrentUserID(c)
 
 	updateData := &model.Game{
 		CategoryID:        req.CategoryID,
@@ -224,7 +224,7 @@ func (h *GameHandler) UpdateGame(c echo.Context) error {
 		Images:            pq.StringArray(req.Images),
 	}
 
-	err := h.gameService.UpdateGame(adminID, gameID, updateData)
+	err := h.gameService.UpdatePartnerGame(partnerID, gameID, updateData)
 	if err != nil {
 		return myResponse.BadRequest(c, err.Error())
 	}
@@ -232,35 +232,24 @@ func (h *GameHandler) UpdateGame(c echo.Context) error {
 	return myResponse.Success(c, "Game updated successfully", nil)
 }
 
-// DeleteGame godoc
-// @Summary Delete game
-// @Description Delete a game listing (Admin only)
-// @Tags Admin - Games
+// GetPartnerGames godoc
+// @Summary Get partner's games
+// @Description Get list of games owned by the partner
+// @Tags Partner
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Game ID"
-// @Success 200 {object} map[string]interface{} "Game deleted successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid game ID"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} map[string]interface{} "Partner games retrieved successfully"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden"
-// @Router /admin/games/{id} [delete]
-func (h *GameHandler) DeleteGame(c echo.Context) error {
-	gameID := myRequest.PathParamUint(c, "id")
-	if gameID == 0 {
-		return myResponse.BadRequest(c, "Invalid game ID")
+// @Router /partner/games [get]
+func (h *GameHandler) GetPartnerGames(c echo.Context) error {
+	userID := echomw.CurrentUserID(c)
+	if userID == 0 {
+		return myResponse.Unauthorized(c, "Unauthorized")
 	}
 
-	adminID := echomw.CurrentUserID(c)
-	err := h.gameService.DeleteGame(adminID, gameID)
-	if err != nil {
-		return myResponse.BadRequest(c, err.Error())
-	}
-
-	return myResponse.Success(c, "Game deleted successfully", nil)
-}
-
-func (h *GameHandler) GetAllGamesAdmin(c echo.Context) error {
 	page := myRequest.QueryInt(c, "page", 1)
 	limit := myRequest.QueryInt(c, "limit", 10)
 
@@ -271,10 +260,9 @@ func (h *GameHandler) GetAllGamesAdmin(c echo.Context) error {
 		limit = 10
 	}
 
-	role := echomw.CurrentRole(c)
-	games, err := h.gameService.GetAllGames(model.UserRole(role), limit, (page-1)*limit)
+	games, err := h.gameService.GetPartnerGames(userID, limit, (page-1)*limit)
 	if err != nil {
-		return myResponse.Forbidden(c, err.Error())
+		return myResponse.InternalServerError(c, "Failed to retrieve games")
 	}
 
 	gameDTOs := dto.ToGameDTOList(games)
@@ -287,5 +275,5 @@ func (h *GameHandler) GetAllGamesAdmin(c echo.Context) error {
 		"total_pages": (totalCount + int64(limit) - 1) / int64(limit),
 	}
 
-	return myResponse.Paginated(c, "Games retrieved successfully", gameDTOs, meta)
+	return myResponse.Paginated(c, "Partner games retrieved successfully", gameDTOs, meta)
 }

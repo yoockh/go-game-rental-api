@@ -26,7 +26,9 @@ type GameService interface {
 
 	// Partner methods
 	CreateGame(partnerID uint, gameData *model.Game) error
+	CreatePartnerGame(partnerID uint, gameData *model.Game) error
 	UpdateGame(partnerID uint, gameID uint, updateData *model.Game) error
+	UpdatePartnerGame(partnerID uint, gameID uint, updateData *model.Game) error
 	DeleteGame(partnerID uint, gameID uint) error
 	GetPartnerGames(partnerID uint, limit, offset int) ([]*model.Game, error)
 	UpdateStock(partnerID uint, gameID uint, newStock int) error
@@ -87,6 +89,10 @@ func (s *gameService) GetAvailableGames(limit, offset int) ([]*model.Game, error
 }
 
 // Partner methods
+func (s *gameService) CreatePartnerGame(partnerID uint, gameData *model.Game) error {
+	return s.CreateGame(partnerID, gameData)
+}
+
 func (s *gameService) CreateGame(partnerID uint, gameData *model.Game) error {
 	// Verify user is partner
 	user, err := s.userRepo.GetByID(partnerID)
@@ -105,6 +111,10 @@ func (s *gameService) CreateGame(partnerID uint, gameData *model.Game) error {
 	gameData.AvailableStock = gameData.Stock
 
 	return s.gameRepo.Create(gameData)
+}
+
+func (s *gameService) UpdatePartnerGame(partnerID uint, gameID uint, updateData *model.Game) error {
+	return s.UpdateGame(partnerID, gameID, updateData)
 }
 
 func (s *gameService) UpdateGame(partnerID uint, gameID uint, updateData *model.Game) error {

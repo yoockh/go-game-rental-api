@@ -17,9 +17,12 @@ var (
 type UserService interface {
 	// Public methods
 	GetProfile(userID uint) (*model.User, error)
-	UpdateProfile(userID uint, updateData *model.User) error
+	UpdateProfile(userID uint, updateData interface{}) error
 
-	// Auth methods - ADD THESE
+	// Auth methods
+	Register(registerData interface{}) (*model.User, error)
+	Login(loginData interface{}, jwtSecret string) (interface{}, error)
+	RefreshToken(refreshData interface{}, jwtSecret string) (interface{}, error)
 	CreateUser(userData *model.User) error
 	AuthenticateUser(email, password string) (*model.User, error)
 	GetUserByID(userID uint) (*model.User, error)
@@ -52,18 +55,9 @@ func (s *userService) GetProfile(userID uint) (*model.User, error) {
 	return s.userRepo.GetByID(userID)
 }
 
-func (s *userService) UpdateProfile(userID uint, updateData *model.User) error {
-	user, err := s.userRepo.GetByID(userID)
-	if err != nil {
-		return ErrUserNotFound
-	}
-
-	// User just can update their own profile
-	user.FullName = updateData.FullName
-	user.Phone = updateData.Phone
-	user.Address = updateData.Address
-
-	return s.userRepo.Update(user)
+func (s *userService) UpdateProfile(userID uint, updateData interface{}) error {
+	// TODO: Implement proper DTO to model conversion
+	return errors.New("not implemented yet")
 }
 
 func (s *userService) CreateUser(userData *model.User) error {
@@ -84,6 +78,21 @@ func (s *userService) AuthenticateUser(email, password string) (*model.User, err
 
 func (s *userService) GetUserByID(userID uint) (*model.User, error) {
 	return s.userRepo.GetByID(userID)
+}
+
+func (s *userService) Register(registerData interface{}) (*model.User, error) {
+	// TODO: Implement proper registration logic with password hashing
+	return nil, errors.New("not implemented yet")
+}
+
+func (s *userService) Login(loginData interface{}, jwtSecret string) (interface{}, error) {
+	// TODO: Implement proper login logic with JWT generation
+	return nil, errors.New("not implemented yet")
+}
+
+func (s *userService) RefreshToken(refreshData interface{}, jwtSecret string) (interface{}, error) {
+	// TODO: Implement proper refresh token logic
+	return nil, errors.New("not implemented yet")
 }
 
 func (s *userService) ChangePassword(userID uint, currentPassword, newPassword string) error {

@@ -50,6 +50,10 @@ func RegisterRoutes(
 	protected := e.Group("")
 	protected.Use(myMiddleware.JWTMiddleware(jwtConfig))
 
+	// User profile routes (all authenticated users can access)
+	protected.GET("/users/me", userH.GetMyProfile)
+	protected.PUT("/users/me", userH.UpdateMyProfile)
+
 	// Customer routes (all authenticated users can access)
 	protected.POST("/bookings", bookingH.CreateBooking)
 	protected.GET("/bookings/my", bookingH.GetMyBookings)
@@ -70,10 +74,14 @@ func RegisterRoutes(
 	partner.Use(myMiddleware.RequireRoles("partner", "admin", "super_admin"))
 
 	partner.POST("/apply", partnerH.ApplyPartner)
-	partner.GET("/dashboard", partnerH.GetPartnerBookings)
 	partner.GET("/bookings", partnerH.GetPartnerBookings)
 	partner.PATCH("/bookings/:id/confirm-handover", partnerH.ConfirmHandover)
 	partner.PATCH("/bookings/:id/confirm-return", partnerH.ConfirmReturn)
+
+	// Partner game management
+	partner.POST("/games", gameH.CreateGame)
+	partner.PUT("/games/:id", gameH.UpdateGame)
+	partner.GET("/games", gameH.GetPartnerGames)
 
 	// Admin routes (requires admin or super_admin role)
 	admin := protected.Group("/admin")
@@ -100,10 +108,7 @@ func RegisterRoutes(
 	admin.PUT("/categories/:id", categoryH.UpdateCategory)
 	admin.DELETE("/categories/:id", categoryH.DeleteCategory)
 
-	// Game management
-	admin.POST("/games", gameH.CreateGame)
-	admin.PUT("/games/:id", gameH.UpdateGame)
-	admin.DELETE("/games/:id", gameH.DeleteGame)
+
 
 	// Booking management
 	admin.GET("/bookings", bookingH.GetAllBookings)

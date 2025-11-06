@@ -24,6 +24,10 @@ func (m *MockPaymentGateway) CreateCharge(ctx context.Context, orderID string, g
 	return "mock-tx-" + orderID, "https://mock-payment.com/redirect", nil
 }
 
+func (m *MockPaymentGateway) GetStatus(ctx context.Context, transactionID string) (string, error) {
+	return "paid", nil // Always paid for testing
+}
+
 func (m *MockPaymentGateway) VerifyNotification(orderID, statusCode, grossAmount, signatureKey string) bool {
 	return true // Always valid for testing
 }

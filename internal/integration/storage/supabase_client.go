@@ -5,10 +5,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type SupabaseStorageClient struct {
@@ -19,13 +20,13 @@ type SupabaseStorageClient struct {
 	publicURL string
 }
 
-func NewSupabaseStorageClient() *SupabaseStorageClient {
+func NewSupabaseStorageClient() (*SupabaseStorageClient, error) {
 	baseURL := os.Getenv("SUPABASE_URL")
 	apiKey := os.Getenv("SUPABASE_SERVICE_KEY")
 	bucket := os.Getenv("SUPABASE_STORAGE_BUCKET")
 
 	if baseURL == "" || apiKey == "" || bucket == "" {
-		log.Println("WARN: Supabase storage env vars not fully configured")
+		return nil, fmt.Errorf("supabase not configured: missing URL, SERVICE_KEY, or BUCKET")
 	}
 
 	publicURL := fmt.Sprintf("%s/storage/v1/object/public/%s", baseURL, bucket)
@@ -38,7 +39,7 @@ func NewSupabaseStorageClient() *SupabaseStorageClient {
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-	}
+	}, nil
 }
 
 func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath string, fileName string, contentType string, data []byte) (string, error) {
@@ -50,6 +51,10 @@ func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath 
 	}
 
 	putURL := fmt.Sprintf("%s/storage/v1/object/%s/%s", s.baseURL, s.bucket, destinationPath)
+
+	if len(data) > 10*1024*1024 { // 10MB limit
+		return "", fmt.Errorf("file too large: max 10MB")
+	}
 
 	var lastErr error
 	for attempt := 1; attempt <= 3; attempt++ {
@@ -72,24 +77,33 @@ func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath 
 				time.Sleep(time.Duration(attempt) * time.Second)
 				continue
 			}
-			log.Printf("ERROR: Supabase upload failed for %s after %d attempts: %v", destinationPath, attempt, err)
+			logrus.WithError(err).WithFields(logrus.Fields{
+				"path":     destinationPath,
+				"attempts": attempt,
+			}).Error("Supabase upload failed")
 			return "", fmt.Errorf("upload request failed: %w", err)
 		}
-		defer resp.Body.Close()
 
+		// Close response body immediately after use
 		if resp.StatusCode >= 400 {
 			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
 			lastErr = fmt.Errorf("status=%d body=%s", resp.StatusCode, string(body))
 			if attempt < 3 {
 				time.Sleep(time.Duration(attempt) * time.Second)
 				continue
 			}
-			log.Printf("ERROR: Supabase upload error %d: %s", resp.StatusCode, string(body))
+			logrus.WithFields(logrus.Fields{
+				"status": resp.StatusCode,
+				"body":   string(body),
+				"path":   destinationPath,
+			}).Error("Supabase upload error")
 			return "", fmt.Errorf("upload failed: %w", lastErr)
 		}
 
+		resp.Body.Close()
 		fullPublicURL := fmt.Sprintf("%s/%s", s.publicURL, destinationPath)
-		log.Printf("INFO: File uploaded to Supabase: %s", fullPublicURL)
+		logrus.WithField("url", fullPublicURL).Info("File uploaded to Supabase")
 		return fullPublicURL, nil
 	}
 	return "", fmt.Errorf("upload failed after 3 attempts: %w", lastErr)
@@ -110,18 +124,22 @@ func (s *SupabaseStorageClient) DeleteFile(ctx context.Context, destinationPath 
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		log.Printf("ERROR: Supabase delete failed for %s: %v", destinationPath, err)
+		logrus.WithError(err).WithField("path", destinationPath).Error("Supabase delete failed")
 		return fmt.Errorf("delete request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
-		log.Printf("ERROR: Supabase delete error %d: %s", resp.StatusCode, string(body))
+		logrus.WithFields(logrus.Fields{
+			"status": resp.StatusCode,
+			"body":   string(body),
+			"path":   destinationPath,
+		}).Error("Supabase delete error")
 		return fmt.Errorf("delete failed: status=%d body=%s", resp.StatusCode, string(body))
 	}
 
-	log.Printf("INFO: File deleted from Supabase: %s", destinationPath)
+	logrus.WithField("path", destinationPath).Info("File deleted from Supabase")
 	return nil
 }
 

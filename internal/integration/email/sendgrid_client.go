@@ -3,13 +3,13 @@ package email
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"github.com/sirupsen/logrus"
 )
 
 type SendGridClient struct {
@@ -18,13 +18,13 @@ type SendGridClient struct {
 	fromAddr string
 }
 
-func NewSendGridClient() *SendGridClient {
+func NewSendGridClient() (*SendGridClient, error) {
 	apiKey := os.Getenv("SENDGRID_API_KEY")
 	fromAddr := os.Getenv("SENDGRID_FROM_EMAIL")
 	fromName := os.Getenv("SENDGRID_FROM_NAME")
 
 	if apiKey == "" || fromAddr == "" {
-		log.Println("WARN: SendGrid not fully configured")
+		return nil, fmt.Errorf("sendgrid not configured: missing API_KEY or FROM_EMAIL")
 	}
 	if fromName == "" {
 		fromName = "Game Rental"
@@ -34,12 +34,12 @@ func NewSendGridClient() *SendGridClient {
 		client:   sendgrid.NewSendClient(apiKey),
 		fromName: fromName,
 		fromAddr: fromAddr,
-	}
+	}, nil
 }
 
 func (s *SendGridClient) SendEmail(ctx context.Context, to, subject, plainText, htmlContent string) error {
-	if s.client == nil || s.fromAddr == "" {
-		return fmt.Errorf("sendgrid not configured")
+	if !isValidEmail(to) {
+		return fmt.Errorf("invalid email address: %s", to)
 	}
 
 	// Fallback plainText from HTML if empty to avoid spam marking
@@ -51,19 +51,23 @@ func (s *SendGridClient) SendEmail(ctx context.Context, to, subject, plainText, 
 	toEmail := mail.NewEmail("", to)
 	message := mail.NewSingleEmail(from, subject, toEmail, plainText, htmlContent)
 
-	// Note: SendGrid client doesn't support context timeout directly
-	// Consider implementing custom HTTP client wrapper if strict timeout control needed
-
 	resp, err := s.client.Send(message)
 	if err != nil {
-		log.Printf("ERROR: SendGrid send failed to %s: %v", to, err)
+		logrus.WithError(err).WithField("to", to).Error("SendGrid send failed")
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 	if resp.StatusCode >= 400 {
-		log.Printf("ERROR: SendGrid error %d: %s", resp.StatusCode, resp.Body)
-		return fmt.Errorf("sendgrid error: status=%d body=%s", resp.StatusCode, resp.Body)
+		logrus.WithFields(logrus.Fields{
+			"status": resp.StatusCode,
+			"body":   resp.Body,
+			"to":     to,
+		}).Error("SendGrid error")
+		return fmt.Errorf("sendgrid error: status=%d", resp.StatusCode)
 	}
-	log.Printf("INFO: Email sent to %s (subject: %s)", to, subject)
+	logrus.WithFields(logrus.Fields{
+		"to":      to,
+		"subject": subject,
+	}).Info("Email sent successfully")
 	return nil
 }
 
@@ -87,14 +91,24 @@ func (s *SendGridClient) SendWithTemplate(ctx context.Context, to, templateID st
 
 	resp, err := s.client.Send(message)
 	if err != nil {
-		log.Printf("ERROR: SendGrid template send failed to %s: %v", to, err)
+		logrus.WithError(err).WithFields(logrus.Fields{
+			"to":         to,
+			"template_id": templateID,
+		}).Error("SendGrid template send failed")
 		return fmt.Errorf("failed to send template email: %w", err)
 	}
 	if resp.StatusCode >= 400 {
-		log.Printf("ERROR: SendGrid template error %d: %s", resp.StatusCode, resp.Body)
+		logrus.WithFields(logrus.Fields{
+			"status":     resp.StatusCode,
+			"to":         to,
+			"template_id": templateID,
+		}).Error("SendGrid template error")
 		return fmt.Errorf("sendgrid template error: status=%d", resp.StatusCode)
 	}
-	log.Printf("INFO: Template email sent to %s (template: %s)", to, templateID)
+	logrus.WithFields(logrus.Fields{
+		"to":         to,
+		"template_id": templateID,
+	}).Info("Template email sent successfully")
 	return nil
 }
 
@@ -103,4 +117,10 @@ func stripHTML(html string) string {
 	re := regexp.MustCompile(`<[^>]*>`)
 	plain := re.ReplaceAllString(html, "")
 	return strings.TrimSpace(plain)
+}
+
+// isValidEmail validates email format
+func isValidEmail(email string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
 }

@@ -5,12 +5,12 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	midtrans "github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/coreapi"
+	"github.com/sirupsen/logrus"
 )
 
 type MidtransClient struct {
@@ -27,12 +27,12 @@ var validPaymentTypes = map[string]bool{
 	"qris":          true,
 }
 
-func NewMidtransClient() *MidtransClient {
+func NewMidtransClient() (*MidtransClient, error) {
 	key := os.Getenv("MIDTRANS_SERVER_KEY")
 	env := os.Getenv("MIDTRANS_ENV")
 
 	if key == "" {
-		log.Println("WARN: MIDTRANS_SERVER_KEY not set")
+		return nil, fmt.Errorf("midtrans not configured: missing SERVER_KEY")
 	}
 
 	c := coreapi.Client{}
@@ -45,7 +45,7 @@ func NewMidtransClient() *MidtransClient {
 	return &MidtransClient{
 		core:      &c,
 		serverKey: key,
-	}
+	}, nil
 }
 
 // CreateCharge creates payment charge. Note: ctx is accepted but Midtrans SDK ignores it.
@@ -68,12 +68,16 @@ func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, gross
 
 	resp, err := m.core.ChargeTransaction(req)
 	if err != nil {
-		log.Printf("ERROR: Midtrans charge failed for order %s: %v", orderID, err)
+		logrus.WithError(err).WithField("order_id", orderID).Error("Midtrans charge failed")
 		return "", "", fmt.Errorf("payment gateway error: %w", err)
 	}
 
-	log.Printf("INFO: Midtrans charge created: order=%s tx=%s status=%s fraud=%s",
-		orderID, resp.TransactionID, resp.TransactionStatus, resp.FraudStatus)
+	logrus.WithFields(logrus.Fields{
+		"order_id":           orderID,
+		"transaction_id":     resp.TransactionID,
+		"transaction_status": resp.TransactionStatus,
+		"fraud_status":       resp.FraudStatus,
+	}).Info("Midtrans charge created")
 
 	var redirect string
 	if resp.RedirectURL != "" {
@@ -83,16 +87,13 @@ func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, gross
 	return resp.TransactionID, redirect, nil
 }
 
-func (m *MidtransClient) GetStatus(ctx context.Context, transactionID string) (*coreapi.TransactionStatusResponse, error) {
-	if m.serverKey == "" {
-		return nil, fmt.Errorf("midtrans not configured")
-	}
+func (m *MidtransClient) GetStatus(ctx context.Context, transactionID string) (string, error) {
 	resp, err := m.core.CheckTransaction(transactionID)
 	if err != nil {
-		log.Printf("ERROR: Midtrans status check failed for tx %s: %v", transactionID, err)
-		return nil, fmt.Errorf("failed to check payment status: %w", err)
+		logrus.WithError(err).WithField("transaction_id", transactionID).Error("Midtrans status check failed")
+		return "", fmt.Errorf("failed to check payment status: %w", err)
 	}
-	return resp, nil
+	return resp.TransactionStatus, nil
 }
 
 // VerifyNotification: signature = sha512(order_id + status_code + gross_amount + server_key)

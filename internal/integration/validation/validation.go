@@ -32,6 +32,9 @@ func Validate() error {
 	if os.Getenv("MIDTRANS_SERVER_KEY") == "" {
 		missing = append(missing, "MIDTRANS_SERVER_KEY")
 	}
+	if os.Getenv("MIDTRANS_CLIENT_KEY") == "" {
+		missing = append(missing, "MIDTRANS_CLIENT_KEY")
+	}
 
 	if len(missing) > 0 {
 		return fmt.Errorf("missing critical environment variables: %v", missing)

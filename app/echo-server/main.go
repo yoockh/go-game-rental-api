@@ -97,9 +97,27 @@ func main() {
 		storageClient = &storage.MockStorageClient{}
 		paymentGateway = &payment.MockPaymentGateway{}
 	} else {
-		emailSender = email.NewSendGridClient()
-		storageClient = storage.NewSupabaseStorageClient()
-		paymentGateway = payment.NewMidtransClient()
+		// Try real clients, fallback to mock on error
+		if client, err := email.NewSendGridClient(); err != nil {
+			logrus.Warn("SendGrid failed, using mock:", err)
+			emailSender = &email.MockEmailSender{}
+		} else {
+			emailSender = client
+		}
+
+		if client, err := storage.NewSupabaseStorageClient(); err != nil {
+			logrus.Warn("Supabase failed, using mock:", err)
+			storageClient = &storage.MockStorageClient{}
+		} else {
+			storageClient = client
+		}
+
+		if client, err := payment.NewMidtransClient(); err != nil {
+			logrus.Warn("Midtrans failed, using mock:", err)
+			paymentGateway = &payment.MockPaymentGateway{}
+		} else {
+			paymentGateway = client
+		}
 	}
 
 	// Initialize services

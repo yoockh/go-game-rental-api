@@ -7,9 +7,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	maxFileSize = 10 * 1024 * 1024 // 10MB
+	maxRetries  = 3
 )
 
 type SupabaseStorageClient struct {
@@ -43,27 +49,30 @@ func NewSupabaseStorageClient() (*SupabaseStorageClient, error) {
 }
 
 func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath string, fileName string, contentType string, data []byte) (string, error) {
-	if s.baseURL == "" || s.apiKey == "" || s.bucket == "" {
-		return "", fmt.Errorf("supabase storage not configured")
-	}
 	if len(data) == 0 {
 		return "", fmt.Errorf("empty data provided")
+	}
+	if len(data) > maxFileSize {
+		return "", fmt.Errorf("file too large: max %dMB", maxFileSize/(1024*1024))
+	}
+
+	// Sanitasi path
+	if strings.Contains(destinationPath, "../") || strings.Contains(destinationPath, "..\\") {
+		return "", fmt.Errorf("invalid path: contains directory traversal")
+	}
+
+	// Set default content type sebelum loop
+	if contentType == "" {
+		contentType = "application/octet-stream"
 	}
 
 	putURL := fmt.Sprintf("%s/storage/v1/object/%s/%s", s.baseURL, s.bucket, destinationPath)
 
-	if len(data) > 10*1024*1024 { // 10MB limit
-		return "", fmt.Errorf("file too large: max 10MB")
-	}
-
 	var lastErr error
-	for attempt := 1; attempt <= 3; attempt++ {
+	for attempt := 1; attempt <= maxRetries; attempt++ {
 		req, err := http.NewRequestWithContext(ctx, http.MethodPut, putURL, bytes.NewReader(data))
 		if err != nil {
 			return "", fmt.Errorf("failed to create request: %w", err)
-		}
-		if contentType == "" {
-			contentType = "application/octet-stream"
 		}
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set("apiKey", s.apiKey)
@@ -73,7 +82,7 @@ func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath 
 		resp, err := s.client.Do(req)
 		if err != nil {
 			lastErr = err
-			if attempt < 3 {
+			if attempt < maxRetries {
 				time.Sleep(time.Duration(attempt) * time.Second)
 				continue
 			}
@@ -89,7 +98,7 @@ func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath 
 			body, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
 			lastErr = fmt.Errorf("status=%d body=%s", resp.StatusCode, string(body))
-			if attempt < 3 {
+			if attempt < maxRetries {
 				time.Sleep(time.Duration(attempt) * time.Second)
 				continue
 			}
@@ -106,7 +115,7 @@ func (s *SupabaseStorageClient) UploadFile(ctx context.Context, destinationPath 
 		logrus.WithField("url", fullPublicURL).Info("File uploaded to Supabase")
 		return fullPublicURL, nil
 	}
-	return "", fmt.Errorf("upload failed after 3 attempts: %w", lastErr)
+	return "", fmt.Errorf("upload failed after %d attempts: %w", maxRetries, lastErr)
 }
 
 func (s *SupabaseStorageClient) DeleteFile(ctx context.Context, destinationPath string) error {

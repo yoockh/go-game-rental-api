@@ -100,7 +100,7 @@ func (s *paymentService) CreatePayment(userID uint, bookingID uint, provider mod
 	txID, _, err := s.paymentGateway.CreateCharge(
 		context.Background(),
 		orderID,
-		int64(payment.Amount*100), // Convert to cents
+		int64(payment.Amount), // Rupiah penuh sesuai API Midtrans
 		paymentType,
 		nil,
 	)

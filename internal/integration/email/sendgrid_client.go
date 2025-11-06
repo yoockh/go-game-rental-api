@@ -12,6 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	htmlTagRegex = regexp.MustCompile(`<[^>]*>`)
+	emailRegex   = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+)
+
 type SendGridClient struct {
 	client   *sendgrid.Client
 	fromName string
@@ -114,13 +119,11 @@ func (s *SendGridClient) SendWithTemplate(ctx context.Context, to, templateID st
 
 // stripHTML removes HTML tags for plaintext fallback
 func stripHTML(html string) string {
-	re := regexp.MustCompile(`<[^>]*>`)
-	plain := re.ReplaceAllString(html, "")
+	plain := htmlTagRegex.ReplaceAllString(html, "")
 	return strings.TrimSpace(plain)
 }
 
 // isValidEmail validates email format
 func isValidEmail(email string) bool {
-	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return re.MatchString(email)
+	return emailRegex.MatchString(email)
 }

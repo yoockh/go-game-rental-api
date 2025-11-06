@@ -28,7 +28,6 @@ import (
 	"github.com/Yoochan45/go-game-rental-api/app/echo-server/router"
 	_ "github.com/Yoochan45/go-game-rental-api/docs"
 	"github.com/Yoochan45/go-game-rental-api/internal/handler"
-	"github.com/Yoochan45/go-game-rental-api/internal/integration"
 	"github.com/Yoochan45/go-game-rental-api/internal/integration/email"
 	"github.com/Yoochan45/go-game-rental-api/internal/integration/payment"
 	"github.com/Yoochan45/go-game-rental-api/internal/integration/storage"
@@ -86,38 +85,31 @@ func main() {
 	partnerRepo := repository.NewPartnerApplicationRepository(db)
 	disputeRepo := repository.NewDisputeRepository(db)
 
-	// Initialize 3rd party integrations
+	// Initialize 3rd party integrations with fallback to mock
 	var emailSender email.EmailSender
 	var storageClient storage.StorageClient
 	var paymentGateway payment.PaymentGateway
 
-	if err := integration.Validate(); err != nil {
-		logrus.Warn("Using mock integrations:", err)
+	// Try real clients, fallback to mock on error
+	if client, err := email.NewSendGridClient(); err != nil {
+		logrus.Warn("SendGrid failed, using mock:", err)
 		emailSender = &email.MockEmailSender{}
+	} else {
+		emailSender = client
+	}
+
+	if client, err := storage.NewSupabaseStorageClient(); err != nil {
+		logrus.Warn("Supabase failed, using mock:", err)
 		storageClient = &storage.MockStorageClient{}
+	} else {
+		storageClient = client
+	}
+
+	if client, err := payment.NewMidtransClient(); err != nil {
+		logrus.Warn("Midtrans failed, using mock:", err)
 		paymentGateway = &payment.MockPaymentGateway{}
 	} else {
-		// Try real clients, fallback to mock on error
-		if client, err := email.NewSendGridClient(); err != nil {
-			logrus.Warn("SendGrid failed, using mock:", err)
-			emailSender = &email.MockEmailSender{}
-		} else {
-			emailSender = client
-		}
-
-		if client, err := storage.NewSupabaseStorageClient(); err != nil {
-			logrus.Warn("Supabase failed, using mock:", err)
-			storageClient = &storage.MockStorageClient{}
-		} else {
-			storageClient = client
-		}
-
-		if client, err := payment.NewMidtransClient(); err != nil {
-			logrus.Warn("Midtrans failed, using mock:", err)
-			paymentGateway = &payment.MockPaymentGateway{}
-		} else {
-			paymentGateway = client
-		}
+		paymentGateway = client
 	}
 
 	// Initialize services

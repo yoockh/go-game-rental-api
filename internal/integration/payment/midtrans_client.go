@@ -18,14 +18,7 @@ type MidtransClient struct {
 	serverKey string
 }
 
-var validPaymentTypes = map[string]bool{
-	"credit_card":   true,
-	"bank_transfer": true,
-	"echannel":      true,
-	"gopay":         true,
-	"shopeepay":     true,
-	"qris":          true,
-}
+
 
 func NewMidtransClient() (*MidtransClient, error) {
 	key := os.Getenv("MIDTRANS_SERVER_KEY")
@@ -49,13 +42,14 @@ func NewMidtransClient() (*MidtransClient, error) {
 }
 
 // CreateCharge creates payment charge. Note: ctx is accepted but Midtrans SDK ignores it.
-// Consider implementing timeout/rate-limit before calling SDK if needed.
 func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, grossAmount int64, paymentType string, params map[string]interface{}) (string, string, error) {
-	if m.serverKey == "" {
-		return "", "", fmt.Errorf("midtrans not configured")
+	// Log unknown payment types but allow them
+	knownTypes := map[string]bool{
+		"credit_card": true, "bank_transfer": true, "echannel": true,
+		"gopay": true, "shopeepay": true, "qris": true,
 	}
-	if !validPaymentTypes[paymentType] {
-		return "", "", fmt.Errorf("invalid payment type: %s", paymentType)
+	if !knownTypes[paymentType] {
+		logrus.WithField("payment_type", paymentType).Warn("Unknown payment type, proceeding anyway")
 	}
 
 	req := &coreapi.ChargeReq{
@@ -85,6 +79,20 @@ func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, gross
 	}
 
 	return resp.TransactionID, redirect, nil
+}
+
+// MapStatusToInternal maps Midtrans status to internal status
+func MapStatusToInternal(midtransStatus string) string {
+	switch midtransStatus {
+	case "capture", "settlement":
+		return "paid"
+	case "pending":
+		return "pending"
+	case "deny", "cancel", "expire", "failure":
+		return "failed"
+	default:
+		return midtransStatus
+	}
 }
 
 func (m *MidtransClient) GetStatus(ctx context.Context, transactionID string) (string, error) {

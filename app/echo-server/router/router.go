@@ -66,8 +66,6 @@ func RegisterRoutes(
 
 	protected.POST("/bookings/:booking_id/reviews", reviewH.CreateReview)
 
-
-
 	// Partner routes (requires partner, admin, or super_admin role)
 	partner := protected.Group("/partner")
 	partner.Use(myMiddleware.RequireRoles("partner", "admin", "super_admin"))
@@ -108,16 +106,12 @@ func RegisterRoutes(
 	admin.PUT("/categories/:id", categoryH.UpdateCategory)
 	admin.DELETE("/categories/:id", categoryH.DeleteCategory)
 
-
-
 	// Booking management
 	admin.GET("/bookings", bookingH.GetAllBookings)
 
 	// Payment management
 	admin.GET("/payments", paymentH.GetAllPayments)
 	admin.GET("/payments/status", paymentH.GetPaymentsByStatus)
-
-
 
 	// Super Admin routes (requires super_admin role only)
 	superAdmin := protected.Group("/superadmin")

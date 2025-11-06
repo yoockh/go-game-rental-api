@@ -23,7 +23,7 @@ type User struct {
 	Phone     *string        `json:"phone,omitempty"`
 	Address   *string        `json:"address,omitempty"`
 	Role      UserRole       `gorm:"type:user_role;default:customer" json:"role"`
-	IsActive  bool           `gorm:"default:true" json:"is_active"`
+	IsActive  bool           `gorm:"default:false" json:"is_active"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
@@ -34,7 +34,7 @@ type User struct {
 	Bookings            []Booking            `gorm:"foreignKey:UserID" json:"-"`
 	Reviews             []Review             `gorm:"foreignKey:UserID" json:"-"`
 
-	RefreshTokens       []RefreshToken       `gorm:"foreignKey:UserID" json:"-"`
+	EmailVerificationTokens []EmailVerificationToken `gorm:"foreignKey:UserID" json:"-"`
 }
 
 func (User) TableName() string {

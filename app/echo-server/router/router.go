@@ -23,7 +23,7 @@ func RegisterRoutes(
 	// Public endpoints (no authentication required)
 	e.POST("/auth/register", authH.Register)
 	e.POST("/auth/login", authH.Login)
-	e.POST("/auth/refresh", authH.RefreshToken)
+	e.GET("/auth/verify", authH.VerifyEmail)
 
 	// Public game catalog
 	e.GET("/games", gameH.GetAllGames)

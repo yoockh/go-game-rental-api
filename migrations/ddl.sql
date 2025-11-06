@@ -16,7 +16,7 @@ CREATE TABLE users (
     phone VARCHAR(20),
     address TEXT,
     role user_role DEFAULT 'customer',
-    is_active BOOLEAN DEFAULT true,
+    is_active BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -118,13 +118,13 @@ CREATE TABLE reviews (
 
 
 
--- Refresh Tokens table
-CREATE TABLE refresh_tokens (
+-- Email Verification Tokens table
+CREATE TABLE email_verification_tokens (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    is_revoked BOOLEAN DEFAULT false,
+    is_used BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

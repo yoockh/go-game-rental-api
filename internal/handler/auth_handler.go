@@ -17,7 +17,7 @@ type AuthHandler struct {
 	userService service.UserService
 	jwtSecret   string
 	validate    *validator.Validate
-	emailRepo email.EmailRepository
+	emailRepo   email.EmailRepository
 }
 
 func NewAuthHandler(userService service.UserService, jwtSecret string, emailRepo email.EmailRepository) *AuthHandler {
@@ -25,7 +25,7 @@ func NewAuthHandler(userService service.UserService, jwtSecret string, emailRepo
 		userService: userService,
 		jwtSecret:   jwtSecret,
 		validate:    utils.GetValidator(),
-		emailRepo: emailRepo,
+		emailRepo:   emailRepo,
 	}
 }
 
@@ -54,22 +54,30 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	// send email notification welcome new user
+	// Send email verification
 	go func() {
-		subject := "Welcome to Game Rental!"
+		// Get verification token (we need to create a method to get it)
+		verificationURL := fmt.Sprintf("http://localhost:8080/auth/verify?token=PLACEHOLDER")
+		subject := "Verify Your Email - Game Rental"
 		htmlContent := fmt.Sprintf(`
 			<h1>Welcome %s!</h1>
 			<p>Thank you for registering at Game Rental Platform.</p>
-			<p>You can now browse and rent games from our partners.</p>
-		`, user.FullName)
-		plainText := fmt.Sprintf("Welcome %s! Thank you for registering at Game Rental Platform.", user.FullName)
+			<p>Please click the link below to verify your email:</p>
+			<a href="%s">Verify Email</a>
+			<p>This link will expire in 24 hours.</p>
+		`, user.FullName, verificationURL)
+		plainText := "Welcome " + user.FullName + "! Please verify your email by visiting: " + verificationURL
 
 		if err := h.emailRepo.SendEmail(c.Request().Context(), user.Email, subject, plainText, htmlContent); err != nil {
-			logrus.WithError(err).Error("Failed to send welcome email")
+			logrus.WithError(err).Error("Failed to send verification email")
 		}
 	}()
 
-	return myResponse.Created(c, "User registered successfully", user)
+	return myResponse.Created(c, "User registered successfully. Please check your email to verify your account.", map[string]interface{}{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"message": "Verification email sent",
+	})
 }
 
 // Login godoc
@@ -98,48 +106,34 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return myResponse.Unauthorized(c, err.Error())
 	}
 
-	// send email notification login alert
-	go func() {
-		subject := "Login Notification"
-		htmlContent := `
-			<h2>Login Alert</h2>
-			<p>Someone just logged into your Game Rental account.</p>
-			<p>If this wasn't you, please contact support immediately.</p>
-		`
-		plainText := "Someone just logged into your Game Rental account. If this wasn't you, please contact support."
-
-		if err := h.emailRepo.SendEmail(c.Request().Context(), req.Email, subject, plainText, htmlContent); err != nil {
-			logrus.WithError(err).Error("Failed to send login notification email")
-		}
-	}()
-
 	return myResponse.Success(c, "Login successful", response)
 }
 
-// RefreshToken godoc
-// @Summary Refresh JWT token
-// @Description Refresh expired JWT token
+// VerifyEmail godoc
+// @Summary Verify email address
+// @Description Verify user email with verification token
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body dto.RefreshTokenRequest true "Refresh token"
-// @Success 200 {object} map[string]interface{} "Token refreshed successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid input"
-// @Failure 401 {object} map[string]interface{} "Invalid refresh token"
-// @Router /auth/refresh [post]
-func (h *AuthHandler) RefreshToken(c echo.Context) error {
-	var req dto.RefreshTokenRequest
-	if err := c.Bind(&req); err != nil {
-		return myResponse.BadRequest(c, "Invalid input: "+err.Error())
-	}
-	if err := h.validate.Struct(&req); err != nil {
-		return myResponse.BadRequest(c, "Validation error: "+err.Error())
+// @Param token query string true "Verification token"
+// @Success 200 {object} map[string]interface{} "Email verified successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid or expired token"
+// @Router /auth/verify [get]
+func (h *AuthHandler) VerifyEmail(c echo.Context) error {
+	token := c.QueryParam("token")
+	if token == "" {
+		return myResponse.BadRequest(c, "Verification token is required")
 	}
 
-	response, err := h.userService.RefreshToken(&req, h.jwtSecret)
+	user, err := h.userService.VerifyEmail(token)
 	if err != nil {
-		return myResponse.Unauthorized(c, err.Error())
+		logrus.WithError(err).Error("Email verification failed")
+		return myResponse.BadRequest(c, err.Error())
 	}
 
-	return myResponse.Success(c, "Token refreshed successfully", response)
+	return myResponse.Success(c, "Email verified successfully. You can now login.", map[string]interface{}{
+		"user_id":  user.ID,
+		"email":    user.Email,
+		"verified": true,
+	})
 }

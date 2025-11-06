@@ -4,6 +4,10 @@ import (
 	"errors"
 	"time"
 
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository"
@@ -26,7 +30,8 @@ type UserService interface {
 	// Auth methods
 	Register(registerData interface{}) (*model.User, error)
 	Login(loginData interface{}, jwtSecret string) (interface{}, error)
-	RefreshToken(refreshData interface{}, jwtSecret string) (interface{}, error)
+	VerifyEmail(token string) (*model.User, error)
+	ResendVerification(email string) error
 
 	// Admin methods
 	GetAllUsers(requestorRole model.UserRole, limit, offset int) ([]*model.User, int64, error)
@@ -40,10 +45,14 @@ type UserService interface {
 
 type userService struct {
 	userRepo repository.UserRepository
+	verificationRepo repository.EmailVerificationRepository
 }
 
-func NewUserService(userRepo repository.UserRepository) UserService {
-	return &userService{userRepo: userRepo}
+func NewUserService(userRepo repository.UserRepository, verificationRepo repository.EmailVerificationRepository) UserService {
+	return &userService{
+		userRepo: userRepo,
+		verificationRepo: verificationRepo,
+	}
 }
 
 func (s *userService) GetProfile(userID uint) (*model.User, error) {
@@ -86,10 +95,21 @@ func (s *userService) Register(registerData interface{}) (*model.User, error) {
 		Phone:    &req.Phone,
 		Address:  &req.Address,
 		Role:     model.RoleCustomer,
+		IsActive: false,
 	}
 
 	err = s.userRepo.Create(user)
-	return user, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Create verification token
+	_, err = s.createVerificationToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *userService) Login(loginData interface{}, jwtSecret string) (interface{}, error) {
@@ -102,6 +122,11 @@ func (s *userService) Login(loginData interface{}, jwtSecret string) (interface{
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return nil, errors.New("invalid credentials")
+	}
+
+	// Check if user is verified
+	if !user.IsActive {
+		return nil, errors.New("please verify your email before logging in")
 	}
 
 	// Generate JWT
@@ -123,9 +148,52 @@ func (s *userService) Login(loginData interface{}, jwtSecret string) (interface{
 	}, nil
 }
 
-func (s *userService) RefreshToken(refreshData interface{}, jwtSecret string) (interface{}, error) {
-	// For now, just return error - implement later if needed
-	return nil, errors.New("refresh token not implemented")
+func (s *userService) VerifyEmail(token string) (*model.User, error) {
+	// Hash the token to match database
+	hash := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	// Get verification token
+	verificationToken, err := s.verificationRepo.GetByTokenHash(tokenHash)
+	if err != nil {
+		return nil, errors.New("invalid or expired verification token")
+	}
+
+	// Check if token is expired
+	if time.Now().After(verificationToken.ExpiresAt) {
+		return nil, errors.New("verification token has expired")
+	}
+
+	// Activate user
+	user := &verificationToken.User
+	user.IsActive = true
+	err = s.userRepo.Update(user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Mark token as used
+	err = s.verificationRepo.MarkAsUsed(verificationToken.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *userService) ResendVerification(email string) error {
+	user, err := s.userRepo.GetByEmail(email)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	if user.IsActive {
+		return errors.New("user is already verified")
+	}
+
+	// Generate new verification token
+	_, err = s.createVerificationToken(user.ID)
+	return err
 }
 
 func (s *userService) GetAllUsers(requestorRole model.UserRole, limit, offset int) ([]*model.User, int64, error) {
@@ -194,4 +262,33 @@ func (s *userService) DeleteUser(requestorID uint, requestorRole model.UserRole,
 // Helper methods
 func (s *userService) canManageUsers(role model.UserRole) bool {
 	return role == model.RoleAdmin || role == model.RoleSuperAdmin
+}
+
+func (s *userService) createVerificationToken(userID uint) (string, error) {
+	// Generate random token
+	tokenBytes := make([]byte, 32)
+	_, err := rand.Read(tokenBytes)
+	if err != nil {
+		return "", err
+	}
+	token := hex.EncodeToString(tokenBytes)
+
+	// Hash token for storage
+	hash := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	// Create verification token record
+	verificationToken := &model.EmailVerificationToken{
+		UserID:    userID,
+		TokenHash: tokenHash,
+		ExpiresAt: time.Now().Add(24 * time.Hour), // 24 hours expiry
+		IsUsed:    false,
+	}
+
+	err = s.verificationRepo.Create(verificationToken)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

@@ -25,6 +25,4 @@ type LoginResponse struct {
 	ExpiresAt   time.Time   `json:"expires_at"`
 }
 
-type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token" validate:"required"`
-}
+

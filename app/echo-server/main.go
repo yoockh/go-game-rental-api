@@ -62,7 +62,7 @@ func main() {
 	// Auto migrate all models
 	err = db.AutoMigrate(
 		&model.User{},
-		&model.RefreshToken{},
+		&model.EmailVerificationToken{},
 		&model.Category{},
 		&model.Game{},
 		&model.Booking{},
@@ -77,6 +77,7 @@ func main() {
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
+	verificationRepo := repository.NewEmailVerificationRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	gameRepo := repository.NewGameRepository(db)
 	bookingRepo := repository.NewBookingRepository(db)
@@ -113,7 +114,7 @@ func main() {
 	}
 
 	// Initialize services
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, verificationRepo)
 	categoryService := service.NewCategoryService(categoryRepo)
 	gameService := service.NewGameService(gameRepo, userRepo)
 	bookingService := service.NewBookingService(bookingRepo, gameRepo, userRepo)

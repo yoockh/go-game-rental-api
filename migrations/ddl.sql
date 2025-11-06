@@ -4,15 +4,14 @@ CREATE TYPE application_status AS ENUM ('pending', 'approved', 'rejected');
 CREATE TYPE approval_status AS ENUM ('pending_approval', 'approved', 'rejected');
 CREATE TYPE booking_status AS ENUM ('pending_payment', 'confirmed', 'active', 'completed', 'cancelled', 'disputed');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
-CREATE TYPE dispute_status AS ENUM ('open', 'investigating', 'resolved', 'closed');
-CREATE TYPE dispute_type AS ENUM ('payment', 'item_condition', 'late_return', 'no_show', 'other');
+
 CREATE TYPE payment_provider AS ENUM ('stripe', 'midtrans');
 
 -- Users table
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     address TEXT,
@@ -117,20 +116,7 @@ CREATE TABLE reviews (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Disputes table
-CREATE TABLE disputes (
-    id BIGSERIAL PRIMARY KEY,
-    booking_id BIGINT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
-    reporter_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    type dispute_type NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
-    status dispute_status DEFAULT 'open',
-    resolution TEXT,
-    resolved_by BIGINT REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP
-);
+
 
 -- Refresh Tokens table
 CREATE TABLE refresh_tokens (

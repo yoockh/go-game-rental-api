@@ -102,6 +102,8 @@ definitions:
     type: object
   dto.CreatePaymentRequest:
     properties:
+      payment_type:
+        type: string
       provider:
         allOf:
         - $ref: '#/definitions/model.PaymentProvider'

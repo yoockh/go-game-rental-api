@@ -19,7 +19,7 @@ var (
 
 type PaymentService interface {
 	// Customer methods
-	CreatePayment(userID uint, bookingID uint, provider model.PaymentProvider) (*model.Payment, error)
+	CreatePayment(userID uint, bookingID uint, provider model.PaymentProvider, paymentType string) (*model.Payment, error)
 	GetPaymentByBooking(userID uint, bookingID uint) (*model.Payment, error)
 
 	// Admin methods
@@ -55,7 +55,7 @@ func NewPaymentService(
 	}
 }
 
-func (s *paymentService) CreatePayment(userID uint, bookingID uint, provider model.PaymentProvider) (*model.Payment, error) {
+func (s *paymentService) CreatePayment(userID uint, bookingID uint, provider model.PaymentProvider, paymentType string) (*model.Payment, error) {
 	// Get booking and validate ownership
 	booking, err := s.bookingRepo.GetByID(bookingID)
 	if err != nil {
@@ -92,9 +92,13 @@ func (s *paymentService) CreatePayment(userID uint, bookingID uint, provider mod
 
 	// Create charge with payment gateway
 	orderID := fmt.Sprintf("booking-%d", bookingID)
-	paymentType := "credit_card" // Default, could be configurable
-	if provider == model.ProviderMidtrans {
-		paymentType = "bank_transfer"
+	// Set default payment type if not provided
+	if paymentType == "" {
+		if provider == model.ProviderMidtrans {
+			paymentType = "bank_transfer"
+		} else {
+			paymentType = "credit_card"
+		}
 	}
 
 	txID, _, err := s.paymentGateway.CreateCharge(

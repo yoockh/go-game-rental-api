@@ -15,6 +15,7 @@ type MockCharge struct {
 }
 
 func (m *MockPaymentGateway) CreateCharge(ctx context.Context, orderID string, grossAmount int64, paymentType string, params map[string]interface{}) (string, string, error) {
+	_ = ctx // ctx unused in mock
 	m.Charges = append(m.Charges, MockCharge{
 		OrderID:     orderID,
 		Amount:      grossAmount,
@@ -25,6 +26,7 @@ func (m *MockPaymentGateway) CreateCharge(ctx context.Context, orderID string, g
 }
 
 func (m *MockPaymentGateway) GetStatus(ctx context.Context, transactionID string) (string, error) {
+	_ = ctx // ctx unused in mock
 	return "paid", nil // Always paid for testing
 }
 

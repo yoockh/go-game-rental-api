@@ -3,7 +3,8 @@ package dto
 import "github.com/Yoochan45/go-game-rental-api/internal/model"
 
 type CreatePaymentRequest struct {
-	Provider model.PaymentProvider `json:"provider" validate:"required,oneof=stripe midtrans"`
+	Provider    model.PaymentProvider `json:"provider" validate:"required,oneof=stripe midtrans"`
+	PaymentType string                `json:"payment_type,omitempty"`
 }
 
 type PaymentWebhookRequest struct {

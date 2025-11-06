@@ -2867,6 +2867,9 @@ const docTemplate = `{
                 "provider"
             ],
             "properties": {
+                "payment_type": {
+                    "type": "string"
+                },
                 "provider": {
                     "enum": [
                         "stripe",

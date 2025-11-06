@@ -43,6 +43,7 @@ func NewMidtransClient() (*MidtransClient, error) {
 
 // CreateCharge creates payment charge. Note: ctx is accepted but Midtrans SDK ignores it.
 func (m *MidtransClient) CreateCharge(ctx context.Context, orderID string, grossAmount int64, paymentType string, params map[string]interface{}) (string, string, error) {
+	_ = ctx // ctx unused - Midtrans SDK doesn't support context
 	// Log unknown payment types but allow them
 	knownTypes := map[string]bool{
 		"credit_card": true, "bank_transfer": true, "echannel": true,
@@ -96,6 +97,7 @@ func MapStatusToInternal(midtransStatus string) string {
 }
 
 func (m *MidtransClient) GetStatus(ctx context.Context, transactionID string) (string, error) {
+	_ = ctx // ctx unused - Midtrans SDK doesn't support context
 	resp, err := m.core.CheckTransaction(transactionID)
 	if err != nil {
 		logrus.WithError(err).WithField("transaction_id", transactionID).Error("Midtrans status check failed")

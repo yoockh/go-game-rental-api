@@ -56,7 +56,7 @@ func (h *PaymentHandler) CreatePayment(c echo.Context) error {
 		return myResponse.BadRequest(c, "Validation error: "+err.Error())
 	}
 
-	payment, err := h.paymentService.CreatePayment(userID, bookingID, req.Provider)
+	payment, err := h.paymentService.CreatePayment(userID, bookingID, req.Provider, req.PaymentType)
 	if err != nil {
 		return myResponse.Forbidden(c, err.Error())
 	}

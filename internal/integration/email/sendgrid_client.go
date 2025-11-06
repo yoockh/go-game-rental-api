@@ -43,6 +43,7 @@ func NewSendGridClient() (*SendGridClient, error) {
 }
 
 func (s *SendGridClient) SendEmail(ctx context.Context, to, subject, plainText, htmlContent string) error {
+	_ = ctx // ctx unused - SendGrid client doesn't support context timeout
 	if !isValidEmail(to) {
 		return fmt.Errorf("invalid email address: %s", to)
 	}
@@ -77,6 +78,7 @@ func (s *SendGridClient) SendEmail(ctx context.Context, to, subject, plainText, 
 }
 
 func (s *SendGridClient) SendWithTemplate(ctx context.Context, to, templateID string, dynamicData map[string]interface{}) error {
+	_ = ctx // ctx unused - SendGrid client doesn't support context timeout
 	if s.client == nil || s.fromAddr == "" {
 		return fmt.Errorf("sendgrid not configured")
 	}

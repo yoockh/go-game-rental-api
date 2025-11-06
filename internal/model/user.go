@@ -33,7 +33,7 @@ type User struct {
 	Games               []Game               `gorm:"foreignKey:PartnerID" json:"-"`
 	Bookings            []Booking            `gorm:"foreignKey:UserID" json:"-"`
 	Reviews             []Review             `gorm:"foreignKey:UserID" json:"-"`
-	Disputes            []Dispute            `gorm:"foreignKey:ReporterID" json:"-"`
+
 	RefreshTokens       []RefreshToken       `gorm:"foreignKey:UserID" json:"-"`
 }
 

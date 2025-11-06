@@ -14,7 +14,7 @@ const (
 	BookingActive         BookingStatus = "active"
 	BookingCompleted      BookingStatus = "completed"
 	BookingCancelled      BookingStatus = "cancelled"
-	BookingDisputed       BookingStatus = "disputed"
+
 )
 
 type Booking struct {
@@ -43,7 +43,7 @@ type Booking struct {
 	Partner  User      `gorm:"foreignKey:PartnerID" json:"partner,omitempty"`
 	Payment  *Payment  `gorm:"foreignKey:BookingID" json:"payment,omitempty"`
 	Review   *Review   `gorm:"foreignKey:BookingID" json:"review,omitempty"`
-	Disputes []Dispute `gorm:"foreignKey:BookingID" json:"-"`
+
 }
 
 func (Booking) TableName() string {

@@ -2,7 +2,7 @@
 CREATE TYPE user_role AS ENUM ('customer', 'partner', 'admin', 'super_admin');
 CREATE TYPE application_status AS ENUM ('pending', 'approved', 'rejected');
 CREATE TYPE approval_status AS ENUM ('pending_approval', 'approved', 'rejected');
-CREATE TYPE booking_status AS ENUM ('pending_payment', 'confirmed', 'active', 'completed', 'cancelled', 'disputed');
+CREATE TYPE booking_status AS ENUM ('pending_payment', 'confirmed', 'active', 'completed', 'cancelled');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
 
 CREATE TYPE payment_provider AS ENUM ('stripe', 'midtrans');

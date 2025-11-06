@@ -69,7 +69,7 @@ func main() {
 		&model.Payment{},
 		&model.Review{},
 		&model.PartnerApplication{},
-		&model.Dispute{},
+
 	)
 	if err != nil {
 		logrus.Warn("Migration warning:", err)
@@ -83,7 +83,7 @@ func main() {
 	paymentRepo := repository.NewPaymentRepository(db)
 	reviewRepo := repository.NewReviewRepository(db)
 	partnerRepo := repository.NewPartnerApplicationRepository(db)
-	disputeRepo := repository.NewDisputeRepository(db)
+
 
 	// Initialize 3rd party repositories with fallback to mock
 	var emailRepo email.EmailRepository
@@ -120,7 +120,7 @@ func main() {
 	paymentService := service.NewPaymentService(paymentRepo, bookingRepo, userRepo, bookingService, transactionRepo)
 	reviewService := service.NewReviewService(reviewRepo, bookingRepo)
 	partnerService := service.NewPartnerApplicationService(partnerRepo, userRepo)
-	disputeService := service.NewDisputeService(disputeRepo, bookingRepo)
+
 
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(userService, JwtSecret, emailRepo)
@@ -132,7 +132,7 @@ func main() {
 	reviewHandler := handler.NewReviewHandler(reviewService)
 	partnerHandler := handler.NewPartnerHandler(partnerService, bookingService)
 	adminHandler := handler.NewAdminHandler(partnerService, gameService)
-	disputeHandler := handler.NewDisputeHandler(disputeService)
+
 
 	// Setup Echo
 	e := echo.New()
@@ -154,7 +154,7 @@ func main() {
 		reviewHandler,
 		partnerHandler,
 		adminHandler,
-		disputeHandler,
+
 		JwtSecret,
 	)
 

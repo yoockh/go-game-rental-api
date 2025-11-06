@@ -17,7 +17,7 @@ func RegisterRoutes(
 	reviewH *handler.ReviewHandler,
 	partnerH *handler.PartnerHandler,
 	adminH *handler.AdminHandler,
-	disputeH *handler.DisputeHandler,
+
 	jwtSecret string,
 ) {
 	// Public endpoints (no authentication required)
@@ -66,8 +66,7 @@ func RegisterRoutes(
 
 	protected.POST("/bookings/:booking_id/reviews", reviewH.CreateReview)
 
-	protected.POST("/bookings/:booking_id/disputes", disputeH.CreateDispute)
-	protected.GET("/disputes/my", disputeH.GetMyDisputes)
+
 
 	// Partner routes (requires partner, admin, or super_admin role)
 	partner := protected.Group("/partner")
@@ -118,8 +117,7 @@ func RegisterRoutes(
 	admin.GET("/payments", paymentH.GetAllPayments)
 	admin.GET("/payments/status", paymentH.GetPaymentsByStatus)
 
-	// Dispute management
-	admin.GET("/disputes", disputeH.GetAllDisputes)
+
 
 	// Super Admin routes (requires super_admin role only)
 	superAdmin := protected.Group("/superadmin")

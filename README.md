@@ -66,17 +66,13 @@ This project implements multi-role system (Super Admin, Admin, Partner, Customer
 -  Create review for completed bookings
 -  View game reviews
 
-#### Dispute System
--  Create dispute
--  View disputes (user & admin)
--  Admin dispute resolution -- pending
+
 
 ### In Development
-- Payment gateway integration (Stripe/Midtrans)
-- Email notifications
-- File upload for game images
+- Refresh token implementation
 - Advanced filtering and search
 - Analytics dashboard
+- Email notifications enhancement
 
 ---
 
@@ -104,22 +100,16 @@ This project implements multi-role system (Super Admin, Admin, Partner, Customer
 6. Customer returns item → Partner confirms return → status: `completed`
 7. Customer can leave review via `/bookings/:id/review`
 
-### Dispute & Refund Flow
-1. Customer/Partner reports issue via `/disputes/create`
-2. Admin investigates via `/admin/disputes/:id`
-3. Admin decides refund/resolution via `/admin/disputes/:id/resolve`
-
 ---
 
 ## Entity Relationship Diagram (ERD) - Summary
-- users (id, email, password_hash, full_name, phone, address, role, is_active, created_at, updated_at)
+- users (id, email, password, full_name, phone, address, role, is_active, created_at, updated_at)
 - categories (id, name, description, is_active, created_at)
 - partner_applications (id, user_id, business_name, business_address, business_phone, business_description, status, rejection_reason, submitted_at, decided_at, decided_by)
 - games (id, partner_id, category_id, name, description, platform, stock, available_stock, rental_price_per_day, security_deposit, condition, images, is_active, approval_status, approved_by, approved_at, rejection_reason, created_at, updated_at)
 - bookings (id, user_id, game_id, partner_id, start_date, end_date, rental_days, daily_price, total_rental_price, security_deposit, total_amount, status, notes, handover_confirmed_at, return_confirmed_at, created_at, updated_at)
 - payments (id, booking_id, provider, provider_payment_id, amount, status, payment_method, paid_at, failed_at, failure_reason, created_at)
 - reviews (id, booking_id, user_id, game_id, rating, comment, created_at, updated_at)
-- disputes (id, booking_id, reporter_id, type, title, description, status, resolution, resolved_by, created_at, resolved_at)
 - refresh_tokens (id, user_id, token_hash, expires_at, is_revoked, created_at)
 
 ---
@@ -152,12 +142,10 @@ This project implements multi-role system (Super Admin, Admin, Partner, Customer
 |  | PATCH | /admin/partner-applications/:id/approve | Approve / reject partner application |
 |  | GET | /admin/listings | View pending listings |
 |  | PATCH | /admin/listings/:id/approve | Approve / reject listing |
-|  | GET | /admin/disputes | Handle dispute cases |
 | **Superadmin** | GET | /superadmin/admins | View all admins |
 |  | POST | /superadmin/admins | Create new admin |
 |  | DELETE | /superadmin/admins/:id | Remove admin |
-| **Disputes** | POST | /disputes/create | Report dispute |
-|  | GET | /disputes/my | Get user's disputes |
+
 | **Partner Dashboard** | GET | /partner/dashboard | Partner analytics |
 |  | GET | /partner/bookings | View bookings for partner's games |
 |  | PATCH | /partner/bookings/:id/confirm-handover | Confirm item handover |
@@ -203,7 +191,6 @@ Authorization: Bearer <jwt_token>
 - `active` - Item handed over, rental in progress
 - `completed` - Item returned successfully
 - `cancelled` - Booking cancelled
-- `disputed` - Under dispute resolution
 
 ### Payment Status
 - `pending` - Payment initiated
@@ -225,13 +212,14 @@ Authorization: Bearer <jwt_token>
 - **Documentation**: Swagger (swaggo) - auto-generated
 - **Validation**: go-playground/validator v10
 - **Logging**: logrus
+- **Storage**: Supabase Storage (for game images)
+- **Payment Gateway**: Midtrans (sandbox mode)
+- **Email Notification**: SendGrid
 
 ###  Planned
-- **Storage**: Supabase Storage (for game images)
-- **Payment Gateway**: Stripe / Midtrans (sandbox mode)
-- **Email Notification**: SendGrid / Mailgun
 - **Error Tracking**: Sentry
 - **Deployment**: Heroku / Railway
+- **Advanced Analytics**: Custom dashboard
 
 ---
 

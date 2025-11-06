@@ -56,7 +56,7 @@ func (r *userRepository) Update(user *model.User) error {
 }
 
 func (r *userRepository) Delete(id uint) error {
-	// Soft delete - GORM akan set deleted_at
+	// Soft delete - GORM will set DeletedAt field
 	return r.db.Delete(&model.User{}, id).Error
 }
 

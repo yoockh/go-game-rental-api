@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	// Kirim email welcome
+	// send email notification welcome new user
 	go func() {
 		subject := "Welcome to Game Rental!"
 		htmlContent := fmt.Sprintf(`
@@ -98,7 +98,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return myResponse.Unauthorized(c, err.Error())
 	}
 
-	// Kirim email notifikasi login
+	// send email notification login alert
 	go func() {
 		subject := "Login Notification"
 		htmlContent := `

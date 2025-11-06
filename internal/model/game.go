@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	"gorm.io/gorm"
 )
 
 type ApprovalStatus string
@@ -35,7 +34,6 @@ type Game struct {
 	RejectionReason   *string        `json:"rejection_reason,omitempty"`
 	CreatedAt         time.Time      `json:"created_at"`
 	UpdatedAt         time.Time      `json:"updated_at"`
-	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
 	Partner  User      `gorm:"foreignKey:PartnerID" json:"partner,omitempty"`

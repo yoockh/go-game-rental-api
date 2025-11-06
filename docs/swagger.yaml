@@ -26,28 +26,6 @@ definitions:
     required:
     - name
     type: object
-  dto.CreateDisputeRequest:
-    properties:
-      description:
-        minLength: 10
-        type: string
-      title:
-        minLength: 5
-        type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/model.DisputeType'
-        enum:
-        - payment
-        - item_condition
-        - late_return
-        - no_show
-        - other
-    required:
-    - description
-    - title
-    - type
-    type: object
   dto.CreateGameRequest:
     properties:
       category_id:
@@ -157,13 +135,6 @@ definitions:
     - provider_payment_id
     - status
     type: object
-  dto.RefreshTokenRequest:
-    properties:
-      refresh_token:
-        type: string
-    required:
-    - refresh_token
-    type: object
   dto.RegisterRequest:
     properties:
       address:
@@ -183,6 +154,13 @@ definitions:
     - email
     - full_name
     - password
+    type: object
+  dto.ResendVerificationRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   dto.UpdateCategoryRequest:
     properties:
@@ -320,7 +298,6 @@ definitions:
     - active
     - completed
     - cancelled
-    - disputed
     type: string
     x-enum-varnames:
     - BookingPendingPayment
@@ -328,7 +305,6 @@ definitions:
     - BookingActive
     - BookingCompleted
     - BookingCancelled
-    - BookingDisputed
   model.Category:
     properties:
       created_at:
@@ -344,20 +320,6 @@ definitions:
     required:
     - name
     type: object
-  model.DisputeType:
-    enum:
-    - payment
-    - item_condition
-    - late_return
-    - no_show
-    - other
-    type: string
-    x-enum-varnames:
-    - DisputePayment
-    - DisputeItemCondition
-    - DisputeLateReturn
-    - DisputeNoShow
-    - DisputeOther
   model.Game:
     properties:
       approval_status:
@@ -745,45 +707,6 @@ paths:
       summary: Update category
       tags:
       - Admin - Categories
-  /admin/disputes:
-    get:
-      consumes:
-      - application/json
-      description: Get list of all disputes (Admin only)
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Disputes retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get all disputes
-      tags:
-      - Admin - Disputes
   /admin/listings:
     get:
       consumes:
@@ -1022,6 +945,44 @@ paths:
       security:
       - BearerAuth: []
       summary: Get all payments
+      tags:
+      - Admin - Payments
+  /admin/payments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed payment information (Admin only)
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment retrieved successfully
+          schema:
+            $ref: '#/definitions/model.Payment'
+        "400":
+          description: Invalid payment ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Payment not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get payment detail
       tags:
       - Admin - Payments
   /admin/payments/status:
@@ -1309,39 +1270,6 @@ paths:
       summary: Login user
       tags:
       - Authentication
-  /auth/refresh:
-    post:
-      consumes:
-      - application/json
-      description: Refresh expired JWT token
-      parameters:
-      - description: Refresh token
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.RefreshTokenRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Token refreshed successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Invalid refresh token
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Refresh JWT token
-      tags:
-      - Authentication
   /auth/register:
     post:
       consumes:
@@ -1368,6 +1296,61 @@ paths:
             additionalProperties: true
             type: object
       summary: Register user
+      tags:
+      - Authentication
+  /auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Resend verification email to user
+      parameters:
+      - description: Email to resend verification
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResendVerificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification email sent successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input or user already verified
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Resend email verification
+      tags:
+      - Authentication
+  /auth/verify:
+    get:
+      consumes:
+      - application/json
+      description: Verify user email with verification token
+      parameters:
+      - description: Verification token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email verified successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid or expired token
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Verify email address
       tags:
       - Authentication
   /bookings:
@@ -1405,46 +1388,54 @@ paths:
       summary: Create booking
       tags:
       - Bookings
-  /bookings/{booking_id}/disputes:
-    post:
+  /bookings/{booking_id}:
+    get:
       consumes:
       - application/json
-      description: Create a dispute for a booking
+      description: Get detailed information about a specific booking
       parameters:
       - description: Booking ID
         in: path
         name: booking_id
         required: true
         type: integer
-      - description: Dispute details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateDisputeRequest'
       produces:
       - application/json
       responses:
-        "201":
-          description: Dispute created successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
+        "200":
+          description: Booking retrieved successfully
           schema:
             additionalProperties: true
             type: object
       security:
       - BearerAuth: []
-      summary: Create dispute
+      summary: Get booking detail
       tags:
-      - Disputes
+      - Bookings
+  /bookings/{booking_id}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel a pending booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Booking cancelled successfully
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel booking
+      tags:
+      - Bookings
   /bookings/{booking_id}/payments:
     get:
       consumes:
@@ -1561,79 +1552,6 @@ paths:
       summary: Create review
       tags:
       - Reviews
-  /bookings/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get detailed information about a specific booking
-      parameters:
-      - description: Booking ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Booking retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid booking ID
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Booking not found
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get booking detail
-      tags:
-      - Bookings
-  /bookings/{id}/cancel:
-    patch:
-      consumes:
-      - application/json
-      description: Cancel a pending booking
-      parameters:
-      - description: Booking ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Booking cancelled successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid booking ID or booking cannot be cancelled
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Cancel booking
-      tags:
-      - Bookings
   /bookings/my:
     get:
       consumes:
@@ -1672,7 +1590,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get list of all game categories
+      description: Get list of active game categories
       produces:
       - application/json
       responses:
@@ -1681,12 +1599,7 @@ paths:
           schema:
             additionalProperties: true
             type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get all categories
+      summary: Get active categories
       tags:
       - Categories
   /categories/{id}:
@@ -1720,56 +1633,11 @@ paths:
       summary: Get category detail
       tags:
       - Categories
-  /disputes/my:
-    get:
-      consumes:
-      - application/json
-      description: Get list of current user's disputes
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Disputes retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get my disputes
-      tags:
-      - Disputes
   /games:
     get:
       consumes:
       - application/json
-      description: Get list of all available games (public)
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
+      description: Get list of publicly available (approved & active) games
       produces:
       - application/json
       responses:
@@ -1778,12 +1646,7 @@ paths:
           schema:
             additionalProperties: true
             type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get all games
+      summary: Get public games
       tags:
       - Games
   /games/{game_id}/reviews:
@@ -1970,7 +1833,7 @@ paths:
       summary: Get partner bookings
       tags:
       - Partner
-  /partner/bookings/{id}/confirm-handover:
+  /partner/bookings/{booking_id}/confirm-handover:
     patch:
       consumes:
       - application/json
@@ -1978,7 +1841,7 @@ paths:
       parameters:
       - description: Booking ID
         in: path
-        name: id
+        name: booking_id
         required: true
         type: integer
       produces:
@@ -1994,22 +1857,12 @@ paths:
           schema:
             additionalProperties: true
             type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden - Partner role required
-          schema:
-            additionalProperties: true
-            type: object
       security:
       - BearerAuth: []
       summary: Confirm game handover
       tags:
       - Partner
-  /partner/bookings/{id}/confirm-return:
+  /partner/bookings/{booking_id}/confirm-return:
     patch:
       consumes:
       - application/json
@@ -2017,7 +1870,7 @@ paths:
       parameters:
       - description: Booking ID
         in: path
-        name: id
+        name: booking_id
         required: true
         type: integer
       produces:
@@ -2030,16 +1883,6 @@ paths:
             type: object
         "400":
           description: Invalid booking ID
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden - Partner role required
           schema:
             additionalProperties: true
             type: object
@@ -2210,39 +2053,6 @@ paths:
       summary: Upload game image
       tags:
       - Partner
-  /payments/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get detailed payment information
-      parameters:
-      - description: Payment ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Payment retrieved successfully
-          schema:
-            $ref: '#/definitions/model.Payment'
-        "400":
-          description: Invalid payment ID
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Payment not found
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get payment detail
-      tags:
-      - Payments
   /users/me:
     get:
       consumes:

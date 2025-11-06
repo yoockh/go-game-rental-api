@@ -25,13 +25,12 @@ func NewCategoryHandler(categoryService service.CategoryService) *CategoryHandle
 }
 
 // GetAllCategories godoc
-// @Summary Get all categories
-// @Description Get list of all game categories
+// @Summary Get active categories
+// @Description Get list of active game categories
 // @Tags Categories
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]interface{} "Categories retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /categories [get]
 func (h *CategoryHandler) GetAllCategories(c echo.Context) error {
 	categories, err := h.categoryService.GetActiveCategories()

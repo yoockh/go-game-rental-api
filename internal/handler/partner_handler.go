@@ -104,19 +104,17 @@ func (h *PartnerHandler) GetPartnerBookings(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Booking ID"
+// @Param booking_id path int true "Booking ID"
 // @Success 200 {object} map[string]interface{} "Handover confirmed successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid booking ID"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden - Partner role required"
-// @Router /partner/bookings/{id}/confirm-handover [patch]
+// @Router /partner/bookings/{booking_id}/confirm-handover [patch]
 func (h *PartnerHandler) ConfirmHandover(c echo.Context) error {
 	userID := echomw.CurrentUserID(c)
 	if userID == 0 {
 		return myResponse.Unauthorized(c, "Unauthorized")
 	}
 
-	bookingID := myRequest.PathParamUint(c, "id")
+	bookingID := myRequest.PathParamUint(c, "booking_id")
 	if bookingID == 0 {
 		return myResponse.BadRequest(c, "Invalid booking ID")
 	}
@@ -136,19 +134,17 @@ func (h *PartnerHandler) ConfirmHandover(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Booking ID"
+// @Param booking_id path int true "Booking ID"
 // @Success 200 {object} map[string]interface{} "Return confirmed successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid booking ID"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Forbidden - Partner role required"
-// @Router /partner/bookings/{id}/confirm-return [patch]
+// @Router /partner/bookings/{booking_id}/confirm-return [patch]
 func (h *PartnerHandler) ConfirmReturn(c echo.Context) error {
 	userID := echomw.CurrentUserID(c)
 	if userID == 0 {
 		return myResponse.Unauthorized(c, "Unauthorized")
 	}
 
-	bookingID := myRequest.PathParamUint(c, "id")
+	bookingID := myRequest.PathParamUint(c, "booking_id")
 	if bookingID == 0 {
 		return myResponse.BadRequest(c, "Invalid booking ID")
 	}

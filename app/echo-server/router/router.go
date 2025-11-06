@@ -43,47 +43,51 @@ func RegisterRoutes(
 	// JWT Middleware Configuration
 	jwtConfig := myMiddleware.JWTConfig{
 		SecretKey:      jwtSecret,
-		UseCustomToken: true,
+		UseCustomToken: false, // ubah ke false, kecuali middleware custom kamu butuh true
 	}
 
 	// Protected routes - require authentication
 	protected := e.Group("")
 	protected.Use(myMiddleware.JWTMiddleware(jwtConfig))
 
-	// User profile routes (all authenticated users can access)
+	// User profile
 	protected.GET("/users/me", userH.GetMyProfile)
 	protected.PUT("/users/me", userH.UpdateMyProfile)
 
-	// Customer routes (all authenticated users can access)
+	// Partner application (customer harus bisa akses)
+	protected.POST("/partner/apply", partnerH.ApplyPartner)
+
+	// Customer bookings
 	protected.POST("/bookings", bookingH.CreateBooking)
 	protected.GET("/bookings/my", bookingH.GetMyBookings)
-	protected.GET("/bookings/:id", bookingH.GetBookingDetail)
-	protected.PATCH("/bookings/:id/cancel", bookingH.CancelBooking)
+	protected.GET("/bookings/:booking_id", bookingH.GetBookingDetail)
+	protected.PATCH("/bookings/:booking_id/cancel", bookingH.CancelBooking)
 
+	// Payments (create & get by booking)
 	protected.POST("/bookings/:booking_id/payments", paymentH.CreatePayment)
 	protected.GET("/bookings/:booking_id/payments", paymentH.GetPaymentByBooking)
-	protected.GET("/payments/:id", paymentH.GetPaymentDetail)
+	// protected.GET("/payments/:id", paymentH.GetPaymentDetail) // moved to admin scope
 
+	// Reviews
 	protected.POST("/bookings/:booking_id/reviews", reviewH.CreateReview)
 
-	// Partner routes (requires partner, admin, or super_admin role)
+	// Partner routes (requires partner/admin/super_admin)
 	partner := protected.Group("/partner")
 	partner.Use(myMiddleware.RequireRoles("partner", "admin", "super_admin"))
-
-	partner.POST("/apply", partnerH.ApplyPartner)
 	partner.GET("/bookings", partnerH.GetPartnerBookings)
-	partner.PATCH("/bookings/:id/confirm-handover", partnerH.ConfirmHandover)
-	partner.PATCH("/bookings/:id/confirm-return", partnerH.ConfirmReturn)
-
-	// Partner game management
+	partner.PATCH("/bookings/:booking_id/confirm-handover", partnerH.ConfirmHandover)
+	partner.PATCH("/bookings/:booking_id/confirm-return", partnerH.ConfirmReturn)
 	partner.POST("/games", gameH.CreateGame)
 	partner.PUT("/games/:id", gameH.UpdateGame)
 	partner.GET("/games", gameH.GetPartnerGames)
 	partner.POST("/games/:id/upload-image", gameH.UploadGameImage)
 
-	// Admin routes (requires admin or super_admin role)
+	// Admin routes
 	admin := protected.Group("/admin")
 	admin.Use(myMiddleware.RequireRoles("admin", "super_admin"))
+
+	// Payment detail (admin only)
+	admin.GET("/payments/:id", paymentH.GetPaymentDetail)
 
 	// User management
 	admin.GET("/users", userH.GetAllUsers)
@@ -116,6 +120,4 @@ func RegisterRoutes(
 	// Super Admin routes (requires super_admin role only)
 	superAdmin := protected.Group("/superadmin")
 	superAdmin.Use(myMiddleware.RequireRoles("super_admin"))
-
-	// LATER
 }

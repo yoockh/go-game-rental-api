@@ -98,16 +98,17 @@ func (h *PaymentHandler) GetPaymentByBooking(c echo.Context) error {
 
 // GetPaymentDetail godoc
 // @Summary Get payment detail
-// @Description Get detailed payment information
-// @Tags Payments
+// @Description Get detailed payment information (Admin only)
+// @Tags Admin - Payments
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param id path int true "Payment ID"
 // @Success 200 {object} model.Payment "Payment retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Invalid payment ID"
+// @Failure 403 {object} map[string]interface{} "Forbidden"
 // @Failure 404 {object} map[string]interface{} "Payment not found"
-// @Router /payments/{id} [get]
+// @Router /admin/payments/{id} [get]
 func (h *PaymentHandler) GetPaymentDetail(c echo.Context) error {
 	paymentID := myRequest.PathParamUint(c, "id")
 	if paymentID == 0 {

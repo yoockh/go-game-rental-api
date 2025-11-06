@@ -11,8 +11,8 @@ import (
 	myRequest "github.com/Yoochan45/go-api-utils/pkg-echo/request"
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository/storage"
 	"github.com/Yoochan45/go-game-rental-api/internal/model"
+	"github.com/Yoochan45/go-game-rental-api/internal/repository/storage"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
 	"github.com/Yoochan45/go-game-rental-api/internal/utils"
 	"github.com/go-playground/validator/v10"
@@ -21,29 +21,26 @@ import (
 )
 
 type GameHandler struct {
-	gameService   service.GameService
-	validate      *validator.Validate
+	gameService service.GameService
+	validate    *validator.Validate
 	storageRepo storage.StorageRepository
 }
 
 func NewGameHandler(gameService service.GameService, storageRepo storage.StorageRepository) *GameHandler {
 	return &GameHandler{
-		gameService:   gameService,
-		validate:      utils.GetValidator(),
+		gameService: gameService,
+		validate:    utils.GetValidator(),
 		storageRepo: storageRepo,
 	}
 }
 
 // GetAllGames godoc
-// @Summary Get all games
-// @Description Get list of all available games (public)
+// @Summary Get public games
+// @Description Get list of publicly available (approved & active) games
 // @Tags Games
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param limit query int false "Items per page" default(10)
 // @Success 200 {object} map[string]interface{} "Games retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /games [get]
 func (h *GameHandler) GetAllGames(c echo.Context) error {
 	params := utils.ParsePagination(c)

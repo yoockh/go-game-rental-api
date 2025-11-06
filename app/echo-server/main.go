@@ -22,22 +22,24 @@ package main
 
 import (
 	"os"
+	"time"
 
 	myOrm "github.com/Yoochan45/go-api-utils/pkg-echo/orm"
 	myConfig "github.com/Yoochan45/go-api-utils/pkg/config"
 	"github.com/Yoochan45/go-game-rental-api/app/echo-server/router"
 	_ "github.com/Yoochan45/go-game-rental-api/docs"
 	"github.com/Yoochan45/go-game-rental-api/internal/handler"
+	"github.com/Yoochan45/go-game-rental-api/internal/model"
+	"github.com/Yoochan45/go-game-rental-api/internal/repository"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository/email"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository/storage"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository/transaction"
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository"
 	"github.com/Yoochan45/go-game-rental-api/internal/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -52,12 +54,24 @@ func main() {
 		logrus.Warn("Using default JWT secret for development")
 	}
 
-
-
-	db, err := myOrm.Init(cfg.DatabaseURL)
+	// Add parameters to avoid prepared statement cache in pooler
+	dbURL := cfg.DatabaseURL + "&statement_cache_mode=describe&prefer_simple_protocol=true"
+	db, err := myOrm.Init(dbURL)
 	if err != nil {
 		logrus.Fatal("Failed to connect to database:", err)
 	}
+
+	// Disable prepared statements completely
+	db = db.Session(&gorm.Session{PrepareStmt: false})
+
+	// Configure connection pool with shorter lifetime to force reconnect
+	sqlDB, err := db.DB()
+	if err != nil {
+		logrus.Fatal("Failed to get underlying sql.DB:", err)
+	}
+	sqlDB.SetMaxOpenConns(1)                  // Limit to 1 connection
+	sqlDB.SetMaxIdleConns(0)                  // No idle connections
+	sqlDB.SetConnMaxLifetime(1 * time.Second) // Force reconnect every second
 
 	// Auto migrate all models
 	err = db.AutoMigrate(
@@ -69,7 +83,6 @@ func main() {
 		&model.Payment{},
 		&model.Review{},
 		&model.PartnerApplication{},
-
 	)
 	if err != nil {
 		logrus.Warn("Migration warning:", err)
@@ -84,7 +97,6 @@ func main() {
 	paymentRepo := repository.NewPaymentRepository(db)
 	reviewRepo := repository.NewReviewRepository(db)
 	partnerRepo := repository.NewPartnerApplicationRepository(db)
-
 
 	// Initialize 3rd party repositories with fallback to mock
 	var emailRepo email.EmailRepository
@@ -122,7 +134,6 @@ func main() {
 	reviewService := service.NewReviewService(reviewRepo, bookingRepo)
 	partnerService := service.NewPartnerApplicationService(partnerRepo, userRepo)
 
-
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(userService, JwtSecret, emailRepo)
 	userHandler := handler.NewUserHandler(userService)
@@ -133,7 +144,6 @@ func main() {
 	reviewHandler := handler.NewReviewHandler(reviewService)
 	partnerHandler := handler.NewPartnerHandler(partnerService, bookingService)
 	adminHandler := handler.NewAdminHandler(partnerService, gameService)
-
 
 	// Setup Echo
 	e := echo.New()

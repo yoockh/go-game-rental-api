@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type UserRole string
@@ -24,9 +22,8 @@ type User struct {
 	Address   *string        `json:"address,omitempty"`
 	Role      UserRole       `gorm:"type:user_role;default:customer" json:"role"`
 	IsActive  bool           `gorm:"default:false" json:"is_active"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 
 	// Relationships
 	PartnerApplications []PartnerApplication `gorm:"foreignKey:UserID" json:"-"`

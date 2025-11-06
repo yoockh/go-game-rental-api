@@ -102,22 +102,12 @@ func (h *BookingHandler) GetMyBookings(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Booking ID"
+// @Param booking_id path int true "Booking ID"
 // @Success 200 {object} map[string]interface{} "Booking retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid booking ID"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 404 {object} map[string]interface{} "Booking not found"
-// @Router /bookings/{id} [get]
+// @Router /bookings/{booking_id} [get]
 func (h *BookingHandler) GetBookingDetail(c echo.Context) error {
 	userID := echomw.CurrentUserID(c)
-	if userID == 0 {
-		return myResponse.Unauthorized(c, "Unauthorized")
-	}
-
-	bookingID := myRequest.PathParamUint(c, "id")
-	if bookingID == 0 {
-		return myResponse.BadRequest(c, "Invalid booking ID")
-	}
+	bookingID := myRequest.PathParamUint(c, "booking_id")
 
 	booking, err := h.bookingService.GetBookingDetail(userID, bookingID)
 	if err != nil {
@@ -134,21 +124,12 @@ func (h *BookingHandler) GetBookingDetail(c echo.Context) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path int true "Booking ID"
+// @Param booking_id path int true "Booking ID"
 // @Success 200 {object} map[string]interface{} "Booking cancelled successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid booking ID or booking cannot be cancelled"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Router /bookings/{id}/cancel [patch]
+// @Router /bookings/{booking_id}/cancel [patch]
 func (h *BookingHandler) CancelBooking(c echo.Context) error {
 	userID := echomw.CurrentUserID(c)
-	if userID == 0 {
-		return myResponse.Unauthorized(c, "Unauthorized")
-	}
-
-	bookingID := myRequest.PathParamUint(c, "id")
-	if bookingID == 0 {
-		return myResponse.BadRequest(c, "Invalid booking ID")
-	}
+	bookingID := myRequest.PathParamUint(c, "booking_id")
 
 	err := h.bookingService.CancelBooking(userID, bookingID)
 	if err != nil {

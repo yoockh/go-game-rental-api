@@ -25,4 +25,8 @@ type LoginResponse struct {
 	ExpiresAt   time.Time   `json:"expires_at"`
 }
 
+type ResendVerificationRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 

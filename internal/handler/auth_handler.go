@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+
 	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
 	"github.com/Yoochan45/go-game-rental-api/internal/dto"
 	"github.com/Yoochan45/go-game-rental-api/internal/repository/email"
@@ -52,9 +54,30 @@ func (h *AuthHandler) Register(c echo.Context) error {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	// TODO: Send email verification with actual token
-	// For now, user is auto-verified for development
-	logrus.Info("User registered successfully - email verification disabled for development")
+	// Send email verification with actual token
+	go func() {
+		// Get the verification token that was created in Register
+		token, err := h.userService.GetVerificationToken(user.ID)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to get verification token")
+			return
+		}
+
+		verificationURL := fmt.Sprintf("http://localhost:8080/auth/verify?token=%s", token)
+		subject := "Verify Your Email - Game Rental"
+		htmlContent := fmt.Sprintf(`
+			<h1>Welcome %s!</h1>
+			<p>Thank you for registering at Game Rental Platform.</p>
+			<p>Please click the link below to verify your email:</p>
+			<a href="%s">Verify Email</a>
+			<p>This link will expire in 24 hours.</p>
+		`, user.FullName, verificationURL)
+		plainText := "Welcome " + user.FullName + "! Please verify your email by visiting: " + verificationURL
+
+		if err := h.emailRepo.SendEmail(c.Request().Context(), user.Email, subject, plainText, htmlContent); err != nil {
+			logrus.WithError(err).Error("Failed to send verification email")
+		}
+	}()
 
 	return myResponse.Created(c, "User registered successfully. Please check your email to verify your account.", map[string]interface{}{
 		"user_id": user.ID,
@@ -119,4 +142,31 @@ func (h *AuthHandler) VerifyEmail(c echo.Context) error {
 		"email":    user.Email,
 		"verified": true,
 	})
+}
+
+// ResendVerification godoc
+// @Summary Resend email verification
+// @Description Resend verification email to user
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body dto.ResendVerificationRequest true "Email to resend verification"
+// @Success 200 {object} map[string]interface{} "Verification email sent successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input or user already verified"
+// @Router /auth/resend-verification [post]
+func (h *AuthHandler) ResendVerification(c echo.Context) error {
+	var req dto.ResendVerificationRequest
+	if err := c.Bind(&req); err != nil {
+		return myResponse.BadRequest(c, "Invalid input: "+err.Error())
+	}
+	if err := h.validate.Struct(&req); err != nil {
+		return myResponse.BadRequest(c, "Validation error: "+err.Error())
+	}
+
+	err := h.userService.ResendVerification(req.Email)
+	if err != nil {
+		return myResponse.BadRequest(c, err.Error())
+	}
+
+	return myResponse.Success(c, "Verification email sent successfully", nil)
 }

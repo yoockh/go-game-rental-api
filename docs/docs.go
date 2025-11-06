@@ -328,65 +328,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/disputes": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of all disputes (Admin only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin - Disputes"
-                ],
-                "summary": "Get all disputes",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Disputes retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/admin/listings": {
             "get": {
                 "security": [
@@ -822,6 +763,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/payments/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed payment information (Admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Payments"
+                ],
+                "summary": "Get payment detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/model.Payment"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid payment ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Payment not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -1178,55 +1177,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/refresh": {
-            "post": {
-                "description": "Refresh expired JWT token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Refresh JWT token",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.RefreshTokenRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Token refreshed successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid refresh token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/auth/register": {
             "post": {
                 "description": "Register a new user account",
@@ -1261,6 +1211,88 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid input or validation error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/resend-verification": {
+            "post": {
+                "description": "Resend verification email to user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend email verification",
+                "parameters": [
+                    {
+                        "description": "Email to resend verification",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResendVerificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification email sent successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or user already verified",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify": {
+            "get": {
+                "description": "Verify user email with verification token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Verification token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1375,14 +1407,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/bookings/{booking_id}/disputes": {
-            "post": {
+        "/bookings/{booking_id}": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a dispute for a booking",
+                "description": "Get detailed information about a specific booking",
                 "consumes": [
                     "application/json"
                 ],
@@ -1390,9 +1422,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Disputes"
+                    "Bookings"
                 ],
-                "summary": "Create dispute",
+                "summary": "Get booking detail",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1400,34 +1432,49 @@ const docTemplate = `{
                         "name": "booking_id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Dispute details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateDisputeRequest"
-                        }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Dispute created successfully",
+                    "200": {
+                        "description": "Booking retrieved successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                    }
+                }
+            }
+        },
+        "/bookings/{booking_id}/cancel": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancel a pending booking",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Cancel booking",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "booking_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Booking cancelled successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1613,120 +1660,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/bookings/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get detailed information about a specific booking",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Bookings"
-                ],
-                "summary": "Get booking detail",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Booking retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid booking ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Booking not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/bookings/{id}/cancel": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Cancel a pending booking",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Bookings"
-                ],
-                "summary": "Cancel booking",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Booking cancelled successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid booking ID or booking cannot be cancelled",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/categories": {
             "get": {
-                "description": "Get list of all game categories",
+                "description": "Get list of active game categories",
                 "consumes": [
                     "application/json"
                 ],
@@ -1736,17 +1672,10 @@ const docTemplate = `{
                 "tags": [
                     "Categories"
                 ],
-                "summary": "Get all categories",
+                "summary": "Get active categories",
                 "responses": {
                     "200": {
                         "description": "Categories retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1801,61 +1730,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/disputes/my": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of current user's disputes",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Disputes"
-                ],
-                "summary": "Get my disputes",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Disputes retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/games": {
             "get": {
-                "description": "Get list of all available games (public)",
+                "description": "Get list of publicly available (approved \u0026 active) games",
                 "consumes": [
                     "application/json"
                 ],
@@ -1865,33 +1742,10 @@ const docTemplate = `{
                 "tags": [
                     "Games"
                 ],
-                "summary": "Get all games",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Get public games",
                 "responses": {
                     "200": {
                         "description": "Games retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2174,7 +2028,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/partner/bookings/{id}/confirm-handover": {
+        "/partner/bookings/{booking_id}/confirm-handover": {
             "patch": {
                 "security": [
                     {
@@ -2196,7 +2050,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Booking ID",
-                        "name": "id",
+                        "name": "booking_id",
                         "in": "path",
                         "required": true
                     }
@@ -2215,25 +2069,11 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - Partner role required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
                     }
                 }
             }
         },
-        "/partner/bookings/{id}/confirm-return": {
+        "/partner/bookings/{booking_id}/confirm-return": {
             "patch": {
                 "security": [
                     {
@@ -2255,7 +2095,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "Booking ID",
-                        "name": "id",
+                        "name": "booking_id",
                         "in": "path",
                         "required": true
                     }
@@ -2270,20 +2110,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid booking ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - Partner role required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2537,57 +2363,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/payments/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get detailed payment information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Payments"
-                ],
-                "summary": "Get payment detail",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Payment ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Payment retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/model.Payment"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid payment ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Payment not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/users/me": {
             "get": {
                 "security": [
@@ -2756,38 +2531,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateDisputeRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "title",
-                "type"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "minLength": 10
-                },
-                "title": {
-                    "type": "string",
-                    "minLength": 5
-                },
-                "type": {
-                    "enum": [
-                        "payment",
-                        "item_condition",
-                        "late_return",
-                        "no_show",
-                        "other"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.DisputeType"
-                        }
-                    ]
-                }
-            }
-        },
         "dto.CreateGameRequest": {
             "type": "object",
             "required": [
@@ -2949,17 +2692,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.RefreshTokenRequest": {
-            "type": "object",
-            "required": [
-                "refresh_token"
-            ],
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.RegisterRequest": {
             "type": "object",
             "required": [
@@ -2985,6 +2717,17 @@ const docTemplate = `{
                 "phone": {
                     "type": "string",
                     "minLength": 10
+                }
+            }
+        },
+        "dto.ResendVerificationRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
                 }
             }
         },
@@ -3187,16 +2930,14 @@ const docTemplate = `{
                 "confirmed",
                 "active",
                 "completed",
-                "cancelled",
-                "disputed"
+                "cancelled"
             ],
             "x-enum-varnames": [
                 "BookingPendingPayment",
                 "BookingConfirmed",
                 "BookingActive",
                 "BookingCompleted",
-                "BookingCancelled",
-                "BookingDisputed"
+                "BookingCancelled"
             ]
         },
         "model.Category": {
@@ -3221,23 +2962,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "model.DisputeType": {
-            "type": "string",
-            "enum": [
-                "payment",
-                "item_condition",
-                "late_return",
-                "no_show",
-                "other"
-            ],
-            "x-enum-varnames": [
-                "DisputePayment",
-                "DisputeItemCondition",
-                "DisputeLateReturn",
-                "DisputeNoShow",
-                "DisputeOther"
-            ]
         },
         "model.Game": {
             "type": "object",

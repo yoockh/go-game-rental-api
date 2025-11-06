@@ -32,8 +32,7 @@ func (r *userRepository) Create(user *model.User) error {
 
 func (r *userRepository) GetByID(id uint) (*model.User, error) {
 	var user model.User
-	err := r.db.Where("id = ?", id).First(&user).Error
-	if err != nil {
+	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -41,8 +40,7 @@ func (r *userRepository) GetByID(id uint) (*model.User, error) {
 
 func (r *userRepository) GetByEmail(email string) (*model.User, error) {
 	var user model.User
-	err := r.db.Where("email = ?", email).First(&user).Error
-	if err != nil {
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -53,8 +51,7 @@ func (r *userRepository) Update(user *model.User) error {
 }
 
 func (r *userRepository) Delete(id uint) error {
-	// Soft delete - GORM will set DeletedAt field
-	return r.db.Delete(&model.User{}, id).Error
+	return r.db.Unscoped().Delete(&model.User{}, id).Error
 }
 
 func (r *userRepository) GetAll(limit, offset int) ([]*model.User, error) {

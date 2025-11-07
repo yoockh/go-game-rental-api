@@ -1,5 +1,12 @@
 # Video Game Rental API
 
+![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)
+![Echo](https://img.shields.io/badge/Echo-v4-00ADD8?style=flat)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791?style=flat&logo=postgresql)
+![License](https://img.shields.io/badge/license-Educational-green)
+![Test Coverage](https://img.shields.io/badge/coverage-78.5%25-brightgreen)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
+
 ## Overview
 Video Game Rental API is a backend system built with Golang (Echo Framework) for physical game rental platform including cartridges and consoles.  
 This project implements multi-role system (Super Admin, Admin, Customer), along with payment system, review, and booking flow features.
@@ -19,75 +26,75 @@ This project implements multi-role system (Super Admin, Admin, Customer), along 
 | Validation | go-playground/validator v10 |
 | Logging | logrus |
 | Documentation | Swagger (swaggo) |
-| Testing | testify, mockgen |
+| Testing | testify, mock |
 
 ---
 
 ## Modules & Features
 
-### ✅ Implemented
+### **Implemented**
 
 #### Auth & User Management
-- ✅ Register & Login (default role: `customer`)
-- ✅ JWT Authentication with bcrypt password hashing
-- ✅ Role-based Access Control (RBAC): `super_admin`, `admin`, `customer`
-- ✅ View & Edit Profile
-- ✅ Admin user management (view, role update, activate/deactivate)
+- Register & Login (default role: `customer`)
+- JWT Authentication with bcrypt password hashing
+- Role-based Access Control (RBAC): `super_admin`, `admin`, `customer`
+- View & Edit Profile
+- Admin user management (view, role update, activate/deactivate)
 
 #### Game Catalog
-- ✅ List Games (public) with pagination
-- ✅ Game detail view
-- ✅ Game search functionality
-- ✅ Admin game management (CRUD)
-- ✅ Category management (CRUD)
+- List Games (public) with pagination
+- Game detail view
+- Game search functionality
+- Admin game management (CRUD)
+- Category management (CRUD)
 
 #### Booking System
-- ✅ Create booking
-- ✅ View user bookings
-- ✅ View booking detail
-- ✅ Cancel booking
-- ✅ Admin view all bookings
-- ✅ Admin update booking status (confirm/active/complete)
+- Create booking
+- View user bookings
+- View booking detail
+- Cancel booking
+- Admin view all bookings
+- Admin update booking status (confirm/active/complete)
 
 #### Payment System
-- ✅ Create payment for booking
-- ✅ Payment webhook handling
-- ✅ View payment by booking
-- ✅ Admin view all payments
-- ✅ Midtrans integration structure
+- Create payment for booking
+- Payment webhook handling
+- View payment by booking
+- Admin view all payments
+- Midtrans integration structure
 
 #### Review System
-- ✅ Create review for completed bookings
-- ✅ View game reviews (public)
+- Create review for completed bookings
+- View game reviews (public)
 
 ---
 
-### 🚧 In Development / Planned
-- ⏳ Refresh token implementation
-- ⏳ Email notification triggers (welcome, booking confirmation, etc.)
-- ⏳ Advanced filtering (by category, platform, price range)
-- ⏳ Admin analytics dashboard
-- ⏳ Payment gateway full integration (Midtrans/Stripe)
+### **In Development / Planned**
+- Refresh token implementation
+- Email notification triggers (welcome, booking confirmation, etc.)
+- Advanced filtering (by category, platform, price range)
+- Admin analytics dashboard
+- Payment gateway full integration (Midtrans/Stripe)
 
 ---
 
 ## Detailed Business Flow
 
 ### User Journey
-1. **Register** → Default role: `customer`
-2. **Browse Games** → Public access, view catalog
-3. **Create Booking** → Select game, dates → Status: `pending_payment`
-4. **Make Payment** → Via Midtrans → Status: `confirmed` (after webhook)
-5. **Admin Confirms Handover** → Status: `active`
-6. **Return Game** → Admin confirms return → Status: `completed`
-7. **Leave Review** → Customer rates and reviews
+1. **Register** - Default role: `customer`
+2. **Browse Games** - Public access, view catalog
+3. **Create Booking** - Select game, dates, Status: `pending_payment`
+4. **Make Payment** - Via Midtrans, Status: `confirmed` (after webhook)
+5. **Admin Confirms Handover** - Status: `active`
+6. **Return Game** - Admin confirms return, Status: `completed`
+7. **Leave Review** - Customer rates and reviews
 
 ### Admin Workflow
-1. **Manage Games** → Add/Edit/Delete games
-2. **Manage Categories** → Organize game catalog
-3. **Manage Bookings** → View all bookings, update status
-4. **Manage Payments** → Track payment history
-5. **Manage Users** → View users, change roles, activate/deactivate
+1. **Manage Games** - Add/Edit/Delete games
+2. **Manage Categories** - Organize game catalog
+3. **Manage Bookings** - View all bookings, update status
+4. **Manage Payments** - Track payment history
+5. **Manage Users** - View users, change roles, activate/deactivate
 
 ---
 
@@ -245,6 +252,29 @@ Authorization: Bearer <jwt_token>
 | **admin** | Customer permissions + manage games/categories, view all bookings/payments, manage users (except delete) |
 | **super_admin** | Full system access including user deletion |
 
+### Role Management Security Rules
+| Action | Customer | Admin | Super Admin |
+|--------|----------|-------|-------------|
+| View Users | No | Yes | Yes |
+| Update Role to Customer | No | Yes | Yes |
+| Update Role to Admin | No | Yes | Yes |
+| Update Role to Super Admin | No | **No** | Yes |
+| Modify Super Admin Role | No | **No** | Yes |
+| Toggle Customer Status | No | Yes | Yes |
+| Toggle Admin Status | No | Yes | Yes |
+| Toggle Super Admin Status | No | **No** | Yes |
+| Delete Customer | No | Yes | Yes |
+| Delete Admin | No | Yes | Yes |
+| Delete Super Admin | No | **No** | Yes |
+| Delete Self | No | **No** | **No** |
+
+**Key Security Points:**
+- Admin **cannot** promote users to Super Admin
+- Admin **cannot** modify Super Admin role or status
+- Admin **cannot** delete Super Admin
+- **Nobody** can delete themselves
+- Only Super Admin can manage Super Admin accounts
+
 ---
 
 ## Status Definitions
@@ -295,7 +325,7 @@ sqlDB.SetConnMaxLifetime(500 * time.Millisecond)
 
 ## Third-Party Integration
 
-### ✅ Implemented
+### **Implemented**
 - **Database**: PostgreSQL (Supabase)
 - **ORM**: GORM with auto-migration
 - **Documentation**: Swagger (swaggo)
@@ -305,7 +335,7 @@ sqlDB.SetConnMaxLifetime(500 * time.Millisecond)
 - **Email**: SendGrid (configured, pending full implementation)
 - **Payment**: Midtrans structure (webhook handler ready)
 
-### 🚧 Planned
+### **Planned**
 - **Error Tracking**: Sentry
 - **Deployment**: Railway / Heroku
 - **Monitoring**: Prometheus + Grafana
@@ -371,6 +401,39 @@ sqlDB.SetConnMaxLifetime(500 * time.Millisecond)
 
 ## Testing
 
+![Test Status](https://img.shields.io/badge/tests-6%20passed-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-78.5%25-brightgreen)
+
+### Run Tests
+
+```bash
+# Run all tests
+go test ./... -v
+
+# Run tests with coverage
+go test ./internal/handler -v -cover
+
+# Generate coverage report
+go test ./internal/handler -coverprofile=coverage.out
+
+# Generate HTML coverage report
+go tool cover -html=coverage.out -o coverage.html
+
+# Open coverage report in browser
+xdg-open coverage.html  # Linux
+open coverage.html      # macOS
+```
+
+### Test Coverage Summary
+- **Auth Handler**: 78.5% coverage
+- **6 Test Cases**: All passing
+  - Register Success
+  - Register Validation Error
+  - Register Email Exists
+  - Login Success
+  - Login Invalid Credentials
+  - Login Validation Error
+
 ### Sample Credentials (from seed data)
 ```
 Super Admin:
@@ -417,22 +480,25 @@ curl -X POST http://localhost:8080/bookings \
 go-game-rental-api/
 ├── app/
 │   └── echo-server/
-│       ├── main.go           # Application entry point
-│       └── router/
-│           └── router.go     # Route definitions
-├── config/
-│   └── config.go             # Configuration management
+│       └── main.go              # Application entry point
 ├── internal/
-│   ├── dto/                  # Data Transfer Objects
-│   ├── handler/              # HTTP handlers
-│   ├── middleware/           # Custom middleware
-│   ├── model/                # Database models
-│   ├── repository/           # Data access layer
-│   └── service/              # Business logic layer
+│   ├── config/
+│   │   └── config.go            # Configuration management
+│   ├── dto/                     # Data Transfer Objects
+│   ├── handler/                 # HTTP handlers
+│   │   ├── auth_handler.go
+│   │   └── auth_handler_test.go # Unit tests
+│   ├── middleware/              # Custom middleware
+│   ├── model/                   # Database models
+│   ├── repository/              # Data access layer
+│   ├── routes/                  # Route definitions
+│   ├── service/                 # Business logic layer
+│   └── utils/                   # Helper functions
 ├── migrations/
-│   ├── ddl.sql              # Database schema
-│   └── seed.sql             # Initial data
-├── docs/                    # Swagger documentation
+│   ├── ddl.sql                  # Database schema
+│   └── seed.sql                 # Initial data
+├── docs/                        # Swagger documentation
+├── coverage.html                # Test coverage report
 ├── go.mod
 ├── go.sum
 └── README.md
@@ -441,12 +507,13 @@ go-game-rental-api/
 ---
 
 ## Development Status
-- ✅ **Core API**: Fully functional
-- ✅ **Authentication**: JWT-based with RBAC
-- ✅ **Database**: PostgreSQL with GORM, Supabase pooler fix applied
-- ✅ **Clean Architecture**: Handler → Service → Repository
-- ✅ **Documentation**: Complete Swagger docs
-- 🚧 **3rd Party**: Email/Payment/Storage (structure ready, pending full integration)
+- **Core API**: Fully functional
+- **Authentication**: JWT-based with RBAC
+- **Database**: PostgreSQL with GORM, Supabase pooler fix applied
+- **Clean Architecture**: Handler → Service → Repository
+- **Documentation**: Complete Swagger docs
+- **Testing**: Unit tests with mocks, 78.5% coverage
+- **3rd Party**: Email/Payment/Storage (structure ready, pending full integration)
 
 ---
 
@@ -459,6 +526,14 @@ go-game-rental-api/
 ### Date Format in Booking
 **Problem**: Frontend sends `YYYY-MM-DD`, backend expects RFC3339  
 **Solution**: Parse date strings manually in handler
+
+### Test Error Logs
+**Note**: Error logs during tests are **intentional** for testing error scenarios:
+```
+time="..." level=error msg="Registration failed" error="email already exists"
+time="..." level=error msg="Login failed" email=... error="invalid credentials"
+```
+These logs appear during `TestRegister_EmailExists` and `TestLogin_InvalidCredentials` test cases.
 
 ---
 
@@ -480,3 +555,10 @@ This project is created for educational purposes.
 ## Contributor
 **Aisiya Qutwatunnada (Yoochan45)**  
 GitHub: [@Yoochan45](https://github.com/Yoochan45)
+
+---
+
+## Quick Links
+- [Swagger Documentation](http://localhost:8080/swagger/index.html)
+- [Coverage Report](./coverage.html)
+- [GitHub Repository](https://github.com/Yoochan45/go-game-rental-api)

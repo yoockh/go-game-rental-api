@@ -179,25 +179,47 @@ func (h *GameHandler) UpdateGame(c echo.Context) error {
 		return myResponse.BadRequest(c, "Validation error: "+err.Error())
 	}
 
+	game, err := h.gameService.GetByID(gameID)
+	if err != nil {
+		return myResponse.NotFound(c, "Game not found")
+	}
+
+	// Update only if provided
+	if req.CategoryID > 0 {
+		game.CategoryID = req.CategoryID
+	}
+	if req.Name != "" {
+		game.Name = req.Name
+	}
+	if req.Description != "" {
+		game.Description = &req.Description
+	}
+	if req.Platform != "" {
+		game.Platform = &req.Platform
+	}
+	if req.Stock > 0 {
+		diff := req.Stock - game.Stock
+		game.Stock = req.Stock
+		game.AvailableStock += diff
+	}
+	if req.RentalPricePerDay > 0 {
+		game.RentalPricePerDay = req.RentalPricePerDay
+	}
+	if req.SecurityDeposit > 0 {
+		game.SecurityDeposit = req.SecurityDeposit
+	}
+	if req.Condition != "" {
+		game.Condition = model.GameCondition(req.Condition)
+	}
+
 	adminID := echomw.CurrentUserID(c)
 	role := echomw.CurrentRole(c)
 
-	updateData := &model.Game{
-		CategoryID:        req.CategoryID,
-		Name:              req.Name,
-		Description:       utils.PtrOrNil(req.Description),
-		Platform:          utils.PtrOrNil(req.Platform),
-		RentalPricePerDay: req.RentalPricePerDay,
-		SecurityDeposit:   req.SecurityDeposit,
-		Condition:         model.GameCondition(req.Condition),
-	}
-
-	err := h.gameService.Update(adminID, model.UserRole(role), gameID, updateData)
+	err = h.gameService.Update(adminID, model.UserRole(role), gameID, game)
 	if err != nil {
-		return myResponse.Forbidden(c, err.Error())
+		return myResponse.BadRequest(c, err.Error())
 	}
 
-	game, _ := h.gameService.GetByID(gameID)
 	return myResponse.Success(c, "Game updated successfully", game)
 }
 

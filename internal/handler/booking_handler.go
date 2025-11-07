@@ -71,7 +71,7 @@ func (h *BookingHandler) CreateBooking(c echo.Context) error {
 		return myResponse.BadRequest(c, err.Error())
 	}
 
-	return myResponse.Created(c, "Booking created successfully", nil)
+	return myResponse.Created(c, "Booking created successfully", bookingData)
 }
 
 // GetMyBookings godoc

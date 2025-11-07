@@ -37,8 +37,13 @@ func (r *reviewRepository) GetByBookingID(bookingID uint) (*model.Review, error)
 
 func (r *reviewRepository) GetGameReviews(gameID uint, limit, offset int) ([]*model.Review, error) {
 	var reviews []*model.Review
-	err := r.db.Preload("User").Preload("Booking").Preload("Game").
-		Where("game_id = ?", gameID).Order("created_at DESC").
-		Limit(limit).Offset(offset).Find(&reviews).Error
+	err := r.db.
+		Preload("User").
+		Preload("Booking").
+		Preload("Game").
+		Where("game_id = ?", gameID).
+		Order("created_at DESC").
+		Limit(limit).Offset(offset).
+		Find(&reviews).Error
 	return reviews, err
 }

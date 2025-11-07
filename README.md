@@ -8,8 +8,8 @@
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 
 
-**Heroku Link** : https://go-game-rental-3beef3913ef8.herokuapp.com
-**Swagger Link** : https://go-game-rental-3beef3913ef8.herokuapp.com/swagger/index.html
+- **Heroku Link** : https://go-game-rental-3beef3913ef8.herokuapp.com
+- **Swagger Link** : https://go-game-rental-3beef3913ef8.herokuapp.com/swagger/index.html
 
 ## Overview
 Video Game Rental API is a backend system built with Golang (Echo Framework) for physical game rental platform including cartridges and consoles.  

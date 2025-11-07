@@ -2,7 +2,7 @@
 
 ## Overview
 Video Game Rental API is a backend system built with Golang (Echo Framework) for physical game rental platform including cartridges and consoles.  
-This project implements multi-role system (Super Admin, Admin, Partner, Customer), along with payment system, review, and approval flow features.
+This project implements multi-role system (Super Admin, Admin, Customer), along with payment system, review, and booking flow features.
 
 ---
 
@@ -12,168 +12,239 @@ This project implements multi-role system (Super Admin, Admin, Partner, Customer
 | Backend | Go (Echo v4) |
 | Database | PostgreSQL / Supabase |
 | ORM / Query | GORM |
-| Authentication | JWT + Refresh Token |
+| Authentication | JWT |
 | File Storage | Supabase Storage |
-| Payment Gateway | Stripe / Midtrans |
+| Payment Gateway | Midtrans |
+| Email Service | SendGrid |
 | Validation | go-playground/validator v10 |
 | Logging | logrus |
 | Documentation | Swagger (swaggo) |
-| CI/CD | Heroku / Railway |
 | Testing | testify, mockgen |
 
 ---
 
 ## Modules & Features
 
-### Implemented
+### ✅ Implemented
 
-#### Auth
--  Register & Login (default role: `customer`)
--  JWT Authentication with bcrypt password hashing
--  Role-based Access Control (RBAC)
--  Refresh Token (placeholder) -- pending
-
-#### User Management
--  View & Edit Profile
--  Admin user management (view, role update, ban/unban)
-
-#### Partner System
--  Apply for Partner (application form)
--  Admin approve/reject partner applications
--  Partner game listings (CRUD)
--  Admin approve/reject game listings
--  Partner view bookings for their games
+#### Auth & User Management
+- ✅ Register & Login (default role: `customer`)
+- ✅ JWT Authentication with bcrypt password hashing
+- ✅ Role-based Access Control (RBAC): `super_admin`, `admin`, `customer`
+- ✅ View & Edit Profile
+- ✅ Admin user management (view, role update, activate/deactivate)
 
 #### Game Catalog
--  List Games (public)
--  Game detail view
--  Game search functionality
--  Partner game management
+- ✅ List Games (public) with pagination
+- ✅ Game detail view
+- ✅ Game search functionality
+- ✅ Admin game management (CRUD)
+- ✅ Category management (CRUD)
 
 #### Booking System
--  Create booking
--  View user bookings
--  Cancel booking
--  Partner confirm handover/return
--  Admin view all bookings
+- ✅ Create booking
+- ✅ View user bookings
+- ✅ View booking detail
+- ✅ Cancel booking
+- ✅ Admin view all bookings
+- ✅ Admin update booking status (confirm/active/complete)
 
 #### Payment System
--  Basic payment structure
--  Payment webhook handling
--  Payment gateway integration (Stripe/Midtrans) -- pending
+- ✅ Create payment for booking
+- ✅ Payment webhook handling
+- ✅ View payment by booking
+- ✅ Admin view all payments
+- ✅ Midtrans integration structure
 
 #### Review System
--  Create review for completed bookings
--  View game reviews
+- ✅ Create review for completed bookings
+- ✅ View game reviews (public)
 
+---
 
-
-### In Development
-- Refresh token implementation
-- Advanced filtering and search
-- Analytics dashboard
-- Email notifications enhancement
+### 🚧 In Development / Planned
+- ⏳ Refresh token implementation
+- ⏳ Email notification triggers (welcome, booking confirmation, etc.)
+- ⏳ Advanced filtering (by category, platform, price range)
+- ⏳ Admin analytics dashboard
+- ⏳ File upload for game images (Supabase Storage)
+- ⏳ Payment gateway full integration (Midtrans/Stripe)
 
 ---
 
 ## Detailed Business Flow
 
-### Partner Onboarding Flow
-1. User register → role: `customer`
-2. Customer submits partner application via `/partner/apply` (simple form with business info)
-3. Admin reviews application via `/admin/partner-applications/:id/approve`
-4. If approved → user.role = `partner`
-5. Partner can now create game listings
+### User Journey
+1. **Register** → Default role: `customer`
+2. **Browse Games** → Public access, view catalog
+3. **Create Booking** → Select game, dates → Status: `pending_payment`
+4. **Make Payment** → Via Midtrans → Status: `confirmed` (after webhook)
+5. **Admin Confirms Handover** → Status: `active`
+6. **Return Game** → Admin confirms return → Status: `completed`
+7. **Leave Review** → Customer rates and reviews
 
-### Game Listing Flow
-1. Partner creates game listing via `/partner/games`
-2. Listing status = `pending_approval`
-3. Admin reviews listing via `/admin/listings/:id/approve`
-4. If approved → game.is_active = true, visible to customers
-
-### Booking & Rental Flow
-1. Customer browses approved games via `/games`
-2. Customer creates booking via `/bookings` → status: `pending_payment`
-3. Customer pays via `/payments/:booking_id/pay`
-4. Payment webhook confirms → booking status: `confirmed`
-5. **Partner confirms item handover** → status: `active`
-6. Customer returns item → Partner confirms return → status: `completed`
-7. Customer can leave review via `/bookings/:id/review`
+### Admin Workflow
+1. **Manage Games** → Add/Edit/Delete games
+2. **Manage Categories** → Organize game catalog
+3. **Manage Bookings** → View all bookings, update status
+4. **Manage Payments** → Track payment history
+5. **Manage Users** → View users, change roles, activate/deactivate
 
 ---
 
 ## Entity Relationship Diagram (ERD) - Summary
-- users (id, email, password, full_name, phone, address, role, is_active, created_at, updated_at)
-- categories (id, name, description, is_active, created_at)
-- partner_applications (id, user_id, business_name, business_address, business_phone, business_description, status, rejection_reason, submitted_at, decided_at, decided_by)
-- games (id, partner_id, category_id, name, description, platform, stock, available_stock, rental_price_per_day, security_deposit, condition, images, is_active, approval_status, approved_by, approved_at, rejection_reason, created_at, updated_at)
-- bookings (id, user_id, game_id, partner_id, start_date, end_date, rental_days, daily_price, total_rental_price, security_deposit, total_amount, status, notes, handover_confirmed_at, return_confirmed_at, created_at, updated_at)
-- payments (id, booking_id, provider, provider_payment_id, amount, status, payment_method, paid_at, failed_at, failure_reason, created_at)
-- reviews (id, booking_id, user_id, game_id, rating, comment, created_at, updated_at)
-- refresh_tokens (id, user_id, token_hash, expires_at, is_revoked, created_at)
+
+```
+users
+├── id (PK)
+├── email (unique)
+├── password (bcrypt hashed)
+├── full_name
+├── phone
+├── address
+├── role (super_admin, admin, customer)
+├── is_active (boolean)
+└── timestamps
+
+categories
+├── id (PK)
+├── name
+├── description
+├── is_active
+└── created_at
+
+games
+├── id (PK)
+├── admin_id (FK → users)
+├── category_id (FK → categories)
+├── name
+├── description
+├── platform
+├── stock
+├── available_stock
+├── rental_price_per_day
+├── security_deposit
+├── condition (excellent, good, fair)
+├── images (text[])
+├── is_active
+└── timestamps
+
+bookings
+├── id (PK)
+├── user_id (FK → users)
+├── game_id (FK → games)
+├── start_date
+├── end_date
+├── rental_days (calculated)
+├── daily_price
+├── total_rental_price
+├── security_deposit
+├── total_amount
+├── status (pending_payment, confirmed, active, completed, cancelled)
+├── notes
+└── timestamps
+
+payments
+├── id (PK)
+├── booking_id (FK → bookings)
+├── provider (midtrans/stripe)
+├── provider_payment_id
+├── amount
+├── status (pending, paid, failed, refunded)
+├── payment_method
+├── paid_at
+├── failed_at
+├── failure_reason
+└── created_at
+
+reviews
+├── id (PK)
+├── booking_id (FK → bookings)
+├── user_id (FK → users)
+├── game_id (FK → games)
+├── rating (1-5)
+├── comment
+└── timestamps
+```
 
 ---
 
 ## API Endpoint Pattern
 
-| Resource | Method | Endpoint | Description |
-|-----------|---------|----------|-------------|
-| **Auth** | POST | /auth/register | Register user |
-|  | POST | /auth/login | Login |
-|  | POST | /auth/refresh | Refresh token |
-| **Users** | GET | /users/me | Get current user profile |
-|  | PUT | /users/me | Update profile |
-| **Partner** | POST | /partner/apply | Submit partner application |
-|  | GET | /partner/applications | Get all partner applications *(admin only)* |
-|  | PATCH | /partner/applications/:id/approve | Approve or reject partner *(admin)* |
-| **Games** | GET | /games | Get all games |
-|  | GET | /games/:id | Get game detail |
-|  | POST | /partner/games | Create new game listing *(partner)* |
-|  | PATCH | /partner/games/:id | Update own game listing *(partner)* |
-| **Bookings** | POST | /bookings | Create booking *(customer)* |
-|  | GET | /bookings/:id | Get booking detail *(authorized only)* |
-|  | PATCH | /bookings/:id/cancel | Cancel booking *(customer)* |
-| **Payments** | POST | /payments/:booking_id/pay | Make payment |
-|  | POST | /webhooks/payments | Handle payment webhook *(system)* |
-| **Reviews** | POST | /bookings/:id/review | Add review after completed booking |
-| **Admin** | GET | /admin/users | View all users |
-|  | PATCH | /admin/users/:id/ban | Ban / unban user |
-|  | GET | /admin/partner-applications | View pending partner applications |
-|  | PATCH | /admin/partner-applications/:id/approve | Approve / reject partner application |
-|  | GET | /admin/listings | View pending listings |
-|  | PATCH | /admin/listings/:id/approve | Approve / reject listing |
-| **Superadmin** | GET | /superadmin/admins | View all admins |
-|  | POST | /superadmin/admins | Create new admin |
-|  | DELETE | /superadmin/admins/:id | Remove admin |
+### Public Endpoints (No Auth Required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /auth/register | Register new user |
+| POST | /auth/login | Login user |
+| GET | /games | Get all games (paginated) |
+| GET | /games/:id | Get game detail |
+| GET | /games/search?q=query | Search games |
+| GET | /categories | Get all categories |
+| GET | /categories/:id | Get category detail |
+| GET | /games/:id/reviews | Get game reviews |
 
-| **Partner Dashboard** | GET | /partner/dashboard | Partner analytics |
-|  | GET | /partner/bookings | View bookings for partner's games |
-|  | PATCH | /partner/bookings/:id/confirm-handover | Confirm item handover |
-|  | PATCH | /partner/bookings/:id/confirm-return | Confirm item return |
+### Customer Endpoints (Auth Required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /users/me | Get current user profile |
+| PUT | /users/me | Update profile |
+| POST | /bookings | Create new booking |
+| GET | /bookings/my | Get my bookings |
+| GET | /bookings/:id | Get booking detail |
+| PATCH | /bookings/:id/cancel | Cancel booking |
+| POST | /bookings/:id/payments | Create payment for booking |
+| GET | /bookings/:id/payments | Get payment by booking |
+| POST | /bookings/:id/reviews | Create review (after completed) |
+
+### Admin Endpoints (Admin/Super Admin Only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /admin/users | Get all users |
+| GET | /admin/users/:id | Get user detail |
+| PATCH | /admin/users/:id/role | Update user role |
+| PATCH | /admin/users/:id/status | Activate/deactivate user |
+| POST | /admin/games | Create game |
+| PUT | /admin/games/:id | Update game |
+| DELETE | /admin/games/:id | Delete game |
+| POST | /admin/categories | Create category |
+| PUT | /admin/categories/:id | Update category |
+| DELETE | /admin/categories/:id | Delete category |
+| GET | /admin/bookings | Get all bookings |
+| PATCH | /admin/bookings/:id/status | Update booking status |
+| GET | /admin/payments | Get all payments |
+| GET | /admin/payments/:id | Get payment detail |
+| GET | /admin/payments/status?status=pending | Get payments by status |
+
+### Super Admin Only
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| DELETE | /admin/users/:id | Delete user permanently |
+
+### Webhooks
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /webhooks/payments | Payment provider callback |
 
 ---
 
 ## Security & Authentication
 
-### Public Endpoints (No authentication required)
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login  
-- `POST /auth/refresh` - Refresh JWT token
-- `GET /games` - Browse game catalog
-- `GET /games/:id` - View game details
-- `POST /webhooks/payments` - Payment gateway webhooks
+### Authentication
+- JWT-based authentication
+- Token expiry: 24 hours
+- Password hashing: bcrypt (cost: 10)
 
-### Protected Endpoints
-All other endpoints require valid JWT token in Authorization header:
+### Authorization Header
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 ### Role-Based Access Control (RBAC)
-- **Customer**: Can book games, manage profile
-- **Partner**: Customer permissions + manage game listings, view bookings
-- **Admin**: Partner permissions + approve applications/listings, handle disputes
-- **Super Admin**: Full system access + manage admins
+| Role | Permissions |
+|------|-------------|
+| **customer** | Browse games, create bookings, manage own profile, leave reviews |
+| **admin** | Customer permissions + manage games/categories, view all bookings/payments, manage users (except delete) |
+| **super_admin** | Full system access including user deletion |
 
 ---
 
@@ -181,16 +252,15 @@ Authorization: Bearer <jwt_token>
 
 ### User Roles
 - `customer` - Default role, can book games
-- `partner` - Can list games for rental
-- `admin` - Can approve/reject applications and listings
+- `admin` - Can manage catalog and bookings
 - `super_admin` - Full system access
 
-### Booking Status
-- `pending_payment` - Awaiting payment
-- `confirmed` - Payment received
-- `active` - Item handed over, rental in progress
-- `completed` - Item returned successfully
-- `cancelled` - Booking cancelled
+### Booking Status Flow
+```
+pending_payment → confirmed → active → completed
+                      ↓
+                  cancelled
+```
 
 ### Payment Status
 - `pending` - Payment initiated
@@ -198,67 +268,217 @@ Authorization: Bearer <jwt_token>
 - `failed` - Payment failed
 - `refunded` - Payment refunded
 
-### Application Status
-- `pending` - Partner application submitted, awaiting review
-- `approved` - Application approved
-- `rejected` - Application rejected
+---
+
+## Database Configuration
+
+### Supabase Pooler Fix
+Due to Supabase connection pooler limitations with prepared statements:
+
+```go
+// Disable prepared statements globally
+db, err := gorm.Open(postgres.New(postgres.Config{
+    DSN:                  dbURL,
+    PreferSimpleProtocol: true,
+}), &gorm.Config{
+    PrepareStmt: false,
+})
+```
+
+### Connection Pool Settings
+```go
+sqlDB.SetMaxOpenConns(1)
+sqlDB.SetMaxIdleConns(0)
+sqlDB.SetConnMaxLifetime(500 * time.Millisecond)
+```
 
 ---
 
 ## Third-Party Integration
 
-###  Implemented
-- **Database**: PostgreSQL with GORM
-- **Documentation**: Swagger (swaggo) - auto-generated
+### ✅ Implemented
+- **Database**: PostgreSQL (Supabase)
+- **ORM**: GORM with auto-migration
+- **Documentation**: Swagger (swaggo)
 - **Validation**: go-playground/validator v10
 - **Logging**: logrus
-- **Storage**: Supabase Storage (for game images)
-- **Payment Gateway**: Midtrans (sandbox mode)
-- **Email Notification**: SendGrid
+- **Authentication**: JWT with bcrypt
+- **Email**: SendGrid (configured, pending full implementation)
+- **Payment**: Midtrans structure (webhook handler ready)
 
-###  Planned
+### 🚧 Planned
+- **File Storage**: Supabase Storage for game images
 - **Error Tracking**: Sentry
-- **Deployment**: Heroku / Railway
-- **Advanced Analytics**: Custom dashboard
+- **Deployment**: Railway / Heroku
+- **Monitoring**: Prometheus + Grafana
 
 ---
 
 ## Setup Guide
-1. Clone repository
+
+### Prerequisites
+- Go 1.21+
+- PostgreSQL 14+ (or Supabase account)
+- Midtrans sandbox account (optional, for payment testing)
+- SendGrid API key (optional, for email)
+
+### Installation
+
+1. **Clone repository**
    ```bash
    git clone https://github.com/Yoochan45/go-game-rental-api.git
    cd go-game-rental-api
    ```
 
-2. Install dependencies
+2. **Install dependencies**
    ```bash
    go mod tidy
    ```
 
-3. Setup environment variables
+3. **Setup environment variables**
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
-4. Run the application
+   Required variables:
+   ```env
+   DATABASE_URL=postgresql://user:password@host:5432/dbname
+   JWT_SECRET=your-secret-key
+   SENDGRID_API_KEY=your-sendgrid-key
+   MIDTRANS_SERVER_KEY=your-midtrans-key
+   ```
+
+4. **Run database migrations**
+   ```bash
+   psql "$DATABASE_URL" -f migrations/ddl.sql
+   psql "$DATABASE_URL" -f migrations/seed.sql
+   ```
+
+5. **Generate Swagger docs**
+   ```bash
+   swag init -g app/echo-server/main.go -o ./docs
+   ```
+
+6. **Run the application**
    ```bash
    go run app/echo-server/main.go
    ```
 
-5. Access Swagger documentation
-   ```
-   http://localhost:8080/swagger/index.html
-   ```
-
-### Development Status
--  **Core API**: Fully functional with all basic CRUD operations
--  **Authentication**: JWT-based auth with role-based access control
--  **Database**: PostgreSQL with GORM, auto-migration
--  **Documentation**: Complete Swagger API docs
--  **Clean Architecture**: Handler → Service → Repository pattern
--  **3rd Party**: Payment gateways, file storage, email (planned)
+7. **Access API**
+   - API: `http://localhost:8080`
+   - Swagger: `http://localhost:8080/swagger/index.html`
 
 ---
+
+## Testing
+
+### Sample Credentials (from seed data)
+```
+Super Admin:
+- Email: superadmin@example.com
+- Password: admin123
+
+Admin:
+- Email: admin@example.com
+- Password: admin123
+
+Customer:
+- Email: customer@example.com
+- Password: customer123
+```
+
+### Example API Calls
+
+```bash
+# Register
+curl -X POST http://localhost:8080/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"password123","full_name":"Test User","phone":"081234567890","address":"Jakarta"}'
+
+# Login
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"customer@example.com","password":"customer123"}'
+
+# Get games
+curl http://localhost:8080/games
+
+# Create booking (requires token)
+curl -X POST http://localhost:8080/bookings \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"game_id":1,"start_date":"2025-11-10","end_date":"2025-11-15","notes":"Weekend rental"}'
+```
+
+---
+
+## Project Structure
+
+```
+go-game-rental-api/
+├── app/
+│   └── echo-server/
+│       ├── main.go           # Application entry point
+│       └── router/
+│           └── router.go     # Route definitions
+├── config/
+│   └── config.go             # Configuration management
+├── internal/
+│   ├── dto/                  # Data Transfer Objects
+│   ├── handler/              # HTTP handlers
+│   ├── middleware/           # Custom middleware
+│   ├── model/                # Database models
+│   ├── repository/           # Data access layer
+│   └── service/              # Business logic layer
+├── migrations/
+│   ├── ddl.sql              # Database schema
+│   └── seed.sql             # Initial data
+├── docs/                    # Swagger documentation
+├── go.mod
+├── go.sum
+└── README.md
+```
+
+---
+
+## Development Status
+- ✅ **Core API**: Fully functional
+- ✅ **Authentication**: JWT-based with RBAC
+- ✅ **Database**: PostgreSQL with GORM, Supabase pooler fix applied
+- ✅ **Clean Architecture**: Handler → Service → Repository
+- ✅ **Documentation**: Complete Swagger docs
+- 🚧 **3rd Party**: Email/Payment/Storage (structure ready, pending full integration)
+
+---
+
+## Known Issues & Solutions
+
+### Supabase Pooler Prepared Statement Error
+**Problem**: `ERROR: prepared statement already exists`  
+**Solution**: Disabled prepared statements globally (see Database Configuration)
+
+### Date Format in Booking
+**Problem**: Frontend sends `YYYY-MM-DD`, backend expects RFC3339  
+**Solution**: Parse date strings manually in handler
+
+---
+
+## Contributing
+This is a classroom project. For collaboration:
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+---
+
+## License
+This project is created for educational purposes.
+
+---
+
 ## Contributor
-Aisiya Qutwatunnada (Yoochan45)
+**Aisiya Qutwatunnada (Yoochan45)**  
+GitHub: [@Yoochan45](https://github.com/Yoochan45)

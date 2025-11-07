@@ -2505,9 +2505,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "go-game-rental-3beef3913ef8.herokuapp.com  // ← UBAH INI!",
 	BasePath:         "/",
-	Schemes:          []string{},
+	Schemes:          []string{"https", "", "//", "←", "TAMBAH", "INI", "(Heroku", "pakai", "HTTPS)"},
 	Title:            "Video Game Rental API",
 	Description:      "Video Game Rental API adalah sistem backend untuk platform penyewaan game fisik",
 	InfoInstanceName: "swagger",

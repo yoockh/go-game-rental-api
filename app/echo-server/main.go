@@ -10,9 +10,9 @@
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host go-game-rental-3beef3913ef8.herokuapp.com  // ← UBAH INI!
+// @host go-game-rental-3beef3913ef8.herokuapp.com
 // @BasePath /
-// @schemes https  // ← TAMBAH INI (Heroku pakai HTTPS)
+// @schemes https
 
 // @securityDefinitions.apikey BearerAuth
 // @in header

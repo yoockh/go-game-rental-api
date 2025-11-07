@@ -418,7 +418,7 @@ definitions:
     - RoleCustomer
     - RoleAdmin
     - RoleSuperAdmin
-host: go-game-rental-3beef3913ef8.herokuapp.com  // ← UBAH INI!
+host: go-game-rental-3beef3913ef8.herokuapp.com
 info:
   contact:
     email: support@swagger.io
@@ -1658,14 +1658,6 @@ paths:
       - Webhooks
 schemes:
 - https
-- ""
-- //
-- ←
-- TAMBAH
-- INI
-- (Heroku
-- pakai
-- HTTPS)
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

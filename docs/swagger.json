@@ -1,14 +1,6 @@
 {
     "schemes": [
-        "https",
-        "",
-        "//",
-        "←",
-        "TAMBAH",
-        "INI",
-        "(Heroku",
-        "pakai",
-        "HTTPS)"
+        "https"
     ],
     "swagger": "2.0",
     "info": {
@@ -26,7 +18,7 @@
         },
         "version": "1.0"
     },
-    "host": "go-game-rental-3beef3913ef8.herokuapp.com  // ← UBAH INI!",
+    "host": "go-game-rental-3beef3913ef8.herokuapp.com",
     "basePath": "/",
     "paths": {
         "/admin/bookings": {

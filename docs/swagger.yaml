@@ -3,12 +3,14 @@ definitions:
   dto.CreateBookingRequest:
     properties:
       end_date:
+        description: String format YYYY-MM-DD
         type: string
       game_id:
         type: integer
       notes:
         type: string
       start_date:
+        description: String format YYYY-MM-DD
         type: string
     required:
     - end_date
@@ -60,23 +62,6 @@ definitions:
     - name
     - rental_price_per_day
     - stock
-    type: object
-  dto.CreatePartnerApplicationRequest:
-    properties:
-      business_address:
-        minLength: 10
-        type: string
-      business_description:
-        type: string
-      business_name:
-        minLength: 2
-        type: string
-      business_phone:
-        minLength: 10
-        type: string
-    required:
-    - business_address
-    - business_name
     type: object
   dto.CreatePaymentRequest:
     properties:
@@ -155,13 +140,6 @@ definitions:
     - full_name
     - password
     type: object
-  dto.ResendVerificationRequest:
-    properties:
-      email:
-        type: string
-    required:
-    - email
-    type: object
   dto.UpdateCategoryRequest:
     properties:
       description:
@@ -176,33 +154,22 @@ definitions:
   dto.UpdateGameRequest:
     properties:
       category_id:
+        description: HAPUS validate:"required"
         type: integer
       condition:
-        enum:
-        - excellent
-        - good
-        - fair
         type: string
       description:
         type: string
-      images:
-        items:
-          type: string
-        type: array
       name:
-        minLength: 2
         type: string
       platform:
         type: string
       rental_price_per_day:
         type: number
       security_deposit:
-        minimum: 0
         type: number
-    required:
-    - category_id
-    - name
-    - rental_price_per_day
+      stock:
+        type: integer
     type: object
   dto.UpdateProfileRequest:
     properties:
@@ -229,16 +196,6 @@ definitions:
     required:
     - role
     type: object
-  model.ApprovalStatus:
-    enum:
-    - pending_approval
-    - approved
-    - rejected
-    type: string
-    x-enum-varnames:
-    - ApprovalPending
-    - ApprovalApproved
-    - ApprovalRejected
   model.Booking:
     properties:
       created_at:
@@ -251,22 +208,14 @@ definitions:
         $ref: '#/definitions/model.Game'
       game_id:
         type: integer
-      handover_confirmed_at:
-        type: string
       id:
         type: integer
       notes:
         type: string
-      partner:
-        $ref: '#/definitions/model.User'
-      partner_id:
-        type: integer
       payment:
         $ref: '#/definitions/model.Payment'
       rental_days:
         type: integer
-      return_confirmed_at:
-        type: string
       review:
         $ref: '#/definitions/model.Review'
       security_deposit:
@@ -293,14 +242,14 @@ definitions:
     type: object
   model.BookingStatus:
     enum:
-    - pending_payment
+    - pending
     - confirmed
     - active
     - completed
     - cancelled
     type: string
     x-enum-varnames:
-    - BookingPendingPayment
+    - BookingPending
     - BookingConfirmed
     - BookingActive
     - BookingCompleted
@@ -322,14 +271,10 @@ definitions:
     type: object
   model.Game:
     properties:
-      approval_status:
-        $ref: '#/definitions/model.ApprovalStatus'
-      approved_at:
-        type: string
-      approved_by:
-        type: integer
-      approver:
+      admin:
         $ref: '#/definitions/model.User'
+      admin_id:
+        type: integer
       available_stock:
         type: integer
       category:
@@ -337,7 +282,7 @@ definitions:
       category_id:
         type: integer
       condition:
-        type: string
+        $ref: '#/definitions/model.GameCondition'
       created_at:
         type: string
       description:
@@ -352,29 +297,27 @@ definitions:
         type: boolean
       name:
         type: string
-      partner:
-        allOf:
-        - $ref: '#/definitions/model.User'
-        description: Relationships
-      partner_id:
-        type: integer
       platform:
-        type: string
-      rejection_reason:
         type: string
       rental_price_per_day:
         type: number
       security_deposit:
         type: number
       stock:
-        minimum: 1
         type: integer
       updated_at:
         type: string
-    required:
-    - name
-    - rental_price_per_day
     type: object
+  model.GameCondition:
+    enum:
+    - excellent
+    - good
+    - fair
+    type: string
+    x-enum-varnames:
+    - ConditionExcellent
+    - ConditionGood
+    - ConditionFair
   model.Payment:
     properties:
       amount:
@@ -427,24 +370,18 @@ definitions:
   model.Review:
     properties:
       booking:
-        allOf:
-        - $ref: '#/definitions/model.Booking'
-        description: Relationships
+        $ref: '#/definitions/model.Booking'
       booking_id:
         type: integer
       comment:
         type: string
       created_at:
         type: string
-      game:
-        $ref: '#/definitions/model.Game'
       game_id:
         type: integer
       id:
         type: integer
       rating:
-        maximum: 5
-        minimum: 1
         type: integer
       updated_at:
         type: string
@@ -452,8 +389,6 @@ definitions:
         $ref: '#/definitions/model.User'
       user_id:
         type: integer
-    required:
-    - rating
     type: object
   model.User:
     properties:
@@ -482,13 +417,11 @@ definitions:
   model.UserRole:
     enum:
     - customer
-    - partner
     - admin
     - super_admin
     type: string
     x-enum-varnames:
     - RoleCustomer
-    - RolePartner
     - RoleAdmin
     - RoleSuperAdmin
 host: localhost:8080
@@ -545,22 +478,31 @@ paths:
       summary: Get all bookings
       tags:
       - Admin - Bookings
-  /admin/bookings/{id}:
-    get:
+  /admin/bookings/{id}/status:
+    patch:
       consumes:
       - application/json
-      description: Get detailed information about a specific booking (Admin only)
+      description: Update booking status (Admin only)
       parameters:
       - description: Booking ID
         in: path
         name: id
         required: true
         type: integer
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            status:
+              type: string
+          type: object
       produces:
       - application/json
       responses:
         "200":
-          description: Booking retrieved successfully
+          description: Booking status updated successfully
           schema:
             additionalProperties: true
             type: object
@@ -574,14 +516,14 @@ paths:
           schema:
             additionalProperties: true
             type: object
-        "404":
-          description: Booking not found
+        "403":
+          description: Forbidden
           schema:
             additionalProperties: true
             type: object
       security:
       - BearerAuth: []
-      summary: Get booking detail (Admin)
+      summary: Update booking status
       tags:
       - Admin - Bookings
   /admin/categories:
@@ -707,184 +649,23 @@ paths:
       summary: Update category
       tags:
       - Admin - Categories
-  /admin/listings:
-    get:
+  /admin/games:
+    post:
       consumes:
       - application/json
-      description: Get list of all game listings for approval (Admin only)
+      description: Create a new game listing (Admin only)
       parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Game listings retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get game listings
-      tags:
-      - Admin - Games
-  /admin/listings/{id}/approve:
-    patch:
-      consumes:
-      - application/json
-      description: Approve a pending game listing (Admin only)
-      parameters:
-      - description: Game ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Game listing approved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid game ID
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Approve game listing
-      tags:
-      - Admin - Games
-  /admin/partner-applications:
-    get:
-      consumes:
-      - application/json
-      description: Get list of all partner applications (Admin only)
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Partner applications retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get partner applications
-      tags:
-      - Admin - Partners
-  /admin/partner-applications/{id}/approve:
-    patch:
-      consumes:
-      - application/json
-      description: Approve a pending partner application (Admin only)
-      parameters:
-      - description: Application ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Partner application approved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid application ID
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Approve partner application
-      tags:
-      - Admin - Partners
-  /admin/partner-applications/{id}/reject:
-    patch:
-      consumes:
-      - application/json
-      description: Reject a pending partner application (Admin only)
-      parameters:
-      - description: Application ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Rejection reason
+      - description: Game details
         in: body
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/dto.CreateGameRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: Partner application rejected successfully
+        "201":
+          description: Game created successfully
           schema:
             additionalProperties: true
             type: object
@@ -905,9 +686,92 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Reject partner application
+      summary: Create new game
       tags:
-      - Admin - Partners
+      - Admin - Games
+  /admin/games/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a game (Admin only)
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Game deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid game ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete game
+      tags:
+      - Admin - Games
+    put:
+      consumes:
+      - application/json
+      description: Update game information (Admin only)
+      parameters:
+      - description: Game ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated game details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateGameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Game updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update game
+      tags:
+      - Admin - Games
   /admin/payments:
     get:
       consumes:
@@ -1298,61 +1162,6 @@ paths:
       summary: Register user
       tags:
       - Authentication
-  /auth/resend-verification:
-    post:
-      consumes:
-      - application/json
-      description: Resend verification email to user
-      parameters:
-      - description: Email to resend verification
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ResendVerificationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Verification email sent successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input or user already verified
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Resend email verification
-      tags:
-      - Authentication
-  /auth/verify:
-    get:
-      consumes:
-      - application/json
-      description: Verify user email with verification token
-      parameters:
-      - description: Verification token
-        in: query
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Email verified successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid or expired token
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Verify email address
-      tags:
-      - Authentication
   /bookings:
     post:
       consumes:
@@ -1637,7 +1446,18 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get list of publicly available (approved & active) games
+      description: Get list of all active games
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
@@ -1646,7 +1466,7 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Get public games
+      summary: Get all games
       tags:
       - Games
   /games/{game_id}/reviews:
@@ -1759,300 +1579,6 @@ paths:
       summary: Search games
       tags:
       - Games
-  /partner/apply:
-    post:
-      consumes:
-      - application/json
-      description: Submit application to become a game rental partner
-      parameters:
-      - description: Partner application details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreatePartnerApplicationRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Partner application submitted successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Apply for partner
-      tags:
-      - Partner
-  /partner/bookings:
-    get:
-      consumes:
-      - application/json
-      description: Get list of bookings for partner's games
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Partner bookings retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden - Partner role required
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get partner bookings
-      tags:
-      - Partner
-  /partner/bookings/{booking_id}/confirm-handover:
-    patch:
-      consumes:
-      - application/json
-      description: Confirm that game has been handed over to customer
-      parameters:
-      - description: Booking ID
-        in: path
-        name: booking_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Handover confirmed successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid booking ID
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Confirm game handover
-      tags:
-      - Partner
-  /partner/bookings/{booking_id}/confirm-return:
-    patch:
-      consumes:
-      - application/json
-      description: Confirm that game has been returned by customer
-      parameters:
-      - description: Booking ID
-        in: path
-        name: booking_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Return confirmed successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid booking ID
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Confirm game return
-      tags:
-      - Partner
-  /partner/games:
-    get:
-      consumes:
-      - application/json
-      description: Get list of games owned by the partner
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Partner games retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get partner's games
-      tags:
-      - Partner
-    post:
-      consumes:
-      - application/json
-      description: Create a new game listing (Partner only)
-      parameters:
-      - description: Game details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateGameRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Game created successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create new game
-      tags:
-      - Partner
-  /partner/games/{id}:
-    put:
-      consumes:
-      - application/json
-      description: Update game information (Partner only)
-      parameters:
-      - description: Game ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated game details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateGameRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Game updated successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update game
-      tags:
-      - Partner
-  /partner/games/{id}/upload-image:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload image for a game (Partner only)
-      parameters:
-      - description: Game ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Game image file
-        in: formData
-        name: image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Image uploaded successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid input
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Upload game image
-      tags:
-      - Partner
   /users/me:
     get:
       consumes:

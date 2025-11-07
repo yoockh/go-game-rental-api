@@ -83,14 +83,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/bookings/{id}": {
-            "get": {
+        "/admin/bookings/{id}/status": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get detailed information about a specific booking (Admin only)",
+                "description": "Update booking status (Admin only)",
                 "consumes": [
                     "application/json"
                 ],
@@ -100,7 +100,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin - Bookings"
                 ],
-                "summary": "Get booking detail (Admin)",
+                "summary": "Update booking status",
                 "parameters": [
                     {
                         "type": "integer",
@@ -108,11 +108,25 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "New status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Booking retrieved successfully",
+                        "description": "Booking status updated successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -132,8 +146,8 @@ const docTemplate = `{
                             "additionalProperties": true
                         }
                     },
-                    "404": {
-                        "description": "Booking not found",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -328,14 +342,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/listings": {
-            "get": {
+        "/admin/games": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get list of all game listings for approval (Admin only)",
+                "description": "Create a new game listing (Admin only)",
                 "consumes": [
                     "application/json"
                 ],
@@ -345,26 +359,28 @@ const docTemplate = `{
                 "tags": [
                     "Admin - Games"
                 ],
-                "summary": "Get game listings",
+                "summary": "Create new game",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
+                        "description": "Game details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateGameRequest"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Game listings retrieved successfully",
+                    "201": {
+                        "description": "Game created successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -387,14 +403,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/listings/{id}/approve": {
-            "patch": {
+        "/admin/games/{id}": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Approve a pending game listing (Admin only)",
+                "description": "Update game information (Admin only)",
                 "consumes": [
                     "application/json"
                 ],
@@ -404,7 +420,73 @@ const docTemplate = `{
                 "tags": [
                     "Admin - Games"
                 ],
-                "summary": "Approve game listing",
+                "summary": "Update game",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Game ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated game details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateGameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Game updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a game (Admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin - Games"
+                ],
+                "summary": "Delete game",
                 "parameters": [
                     {
                         "type": "integer",
@@ -416,7 +498,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Game listing approved successfully",
+                        "description": "Game deleted successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -424,192 +506,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid game ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/partner-applications": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of all partner applications (Admin only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin - Partners"
-                ],
-                "summary": "Get partner applications",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Partner applications retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/partner-applications/{id}/approve": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Approve a pending partner application (Admin only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin - Partners"
-                ],
-                "summary": "Approve partner application",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Application ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Partner application approved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid application ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/partner-applications/{id}/reject": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Reject a pending partner application (Admin only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin - Partners"
-                ],
-                "summary": "Reject partner application",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Application ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Rejection reason",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Partner application rejected successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1219,88 +1115,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/resend-verification": {
-            "post": {
-                "description": "Resend verification email to user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Resend email verification",
-                "parameters": [
-                    {
-                        "description": "Email to resend verification",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.ResendVerificationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Verification email sent successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input or user already verified",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/verify": {
-            "get": {
-                "description": "Verify user email with verification token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Verify email address",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Verification token",
-                        "name": "token",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Email verified successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid or expired token",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/bookings": {
             "post": {
                 "security": [
@@ -1732,7 +1546,7 @@ const docTemplate = `{
         },
         "/games": {
             "get": {
-                "description": "Get list of publicly available (approved \u0026 active) games",
+                "description": "Get list of all active games",
                 "consumes": [
                     "application/json"
                 ],
@@ -1742,7 +1556,23 @@ const docTemplate = `{
                 "tags": [
                     "Games"
                 ],
-                "summary": "Get public games",
+                "summary": "Get all games",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Games retrieved successfully",
@@ -1915,454 +1745,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/partner/apply": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Submit application to become a game rental partner",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Apply for partner",
-                "parameters": [
-                    {
-                        "description": "Partner application details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreatePartnerApplicationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Partner application submitted successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/partner/bookings": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of bookings for partner's games",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Get partner bookings",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Partner bookings retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - Partner role required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/partner/bookings/{booking_id}/confirm-handover": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Confirm that game has been handed over to customer",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Confirm game handover",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "booking_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Handover confirmed successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid booking ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/partner/bookings/{booking_id}/confirm-return": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Confirm that game has been returned by customer",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Confirm game return",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "booking_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Return confirmed successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid booking ID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/partner/games": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get list of games owned by the partner",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Get partner's games",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Partner games retrieved successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new game listing (Partner only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Create new game",
-                "parameters": [
-                    {
-                        "description": "Game details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateGameRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Game created successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/partner/games/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update game information (Partner only)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Update game",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Game ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated game details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateGameRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Game updated successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/partner/games/{id}/upload-image": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Upload image for a game (Partner only)",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Partner"
-                ],
-                "summary": "Upload game image",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Game ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Game image file",
-                        "name": "image",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Image uploaded successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/users/me": {
             "get": {
                 "security": [
@@ -2502,6 +1884,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "end_date": {
+                    "description": "String format YYYY-MM-DD",
                     "type": "string"
                 },
                 "game_id": {
@@ -2511,6 +1894,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "start_date": {
+                    "description": "String format YYYY-MM-DD",
                     "type": "string"
                 }
             }
@@ -2577,30 +1961,6 @@ const docTemplate = `{
                 "stock": {
                     "type": "integer",
                     "minimum": 1
-                }
-            }
-        },
-        "dto.CreatePartnerApplicationRequest": {
-            "type": "object",
-            "required": [
-                "business_address",
-                "business_name"
-            ],
-            "properties": {
-                "business_address": {
-                    "type": "string",
-                    "minLength": 10
-                },
-                "business_description": {
-                    "type": "string"
-                },
-                "business_name": {
-                    "type": "string",
-                    "minLength": 2
-                },
-                "business_phone": {
-                    "type": "string",
-                    "minLength": 10
                 }
             }
         },
@@ -2720,17 +2080,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ResendVerificationRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.UpdateCategoryRequest": {
             "type": "object",
             "required": [
@@ -2749,35 +2098,19 @@ const docTemplate = `{
         },
         "dto.UpdateGameRequest": {
             "type": "object",
-            "required": [
-                "category_id",
-                "name",
-                "rental_price_per_day"
-            ],
             "properties": {
                 "category_id": {
+                    "description": "HAPUS validate:\"required\"",
                     "type": "integer"
                 },
                 "condition": {
-                    "type": "string",
-                    "enum": [
-                        "excellent",
-                        "good",
-                        "fair"
-                    ]
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
                 },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "name": {
-                    "type": "string",
-                    "minLength": 2
+                    "type": "string"
                 },
                 "platform": {
                     "type": "string"
@@ -2786,8 +2119,10 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "security_deposit": {
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer"
                 }
             }
         },
@@ -2830,19 +2165,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ApprovalStatus": {
-            "type": "string",
-            "enum": [
-                "pending_approval",
-                "approved",
-                "rejected"
-            ],
-            "x-enum-varnames": [
-                "ApprovalPending",
-                "ApprovalApproved",
-                "ApprovalRejected"
-            ]
-        },
         "model.Booking": {
             "type": "object",
             "required": [
@@ -2865,29 +2187,17 @@ const docTemplate = `{
                 "game_id": {
                     "type": "integer"
                 },
-                "handover_confirmed_at": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
                 },
                 "notes": {
                     "type": "string"
                 },
-                "partner": {
-                    "$ref": "#/definitions/model.User"
-                },
-                "partner_id": {
-                    "type": "integer"
-                },
                 "payment": {
                     "$ref": "#/definitions/model.Payment"
                 },
                 "rental_days": {
                     "type": "integer"
-                },
-                "return_confirmed_at": {
-                    "type": "string"
                 },
                 "review": {
                     "$ref": "#/definitions/model.Review"
@@ -2926,14 +2236,14 @@ const docTemplate = `{
         "model.BookingStatus": {
             "type": "string",
             "enum": [
-                "pending_payment",
+                "pending",
                 "confirmed",
                 "active",
                 "completed",
                 "cancelled"
             ],
             "x-enum-varnames": [
-                "BookingPendingPayment",
+                "BookingPending",
                 "BookingConfirmed",
                 "BookingActive",
                 "BookingCompleted",
@@ -2965,22 +2275,12 @@ const docTemplate = `{
         },
         "model.Game": {
             "type": "object",
-            "required": [
-                "name",
-                "rental_price_per_day"
-            ],
             "properties": {
-                "approval_status": {
-                    "$ref": "#/definitions/model.ApprovalStatus"
-                },
-                "approved_at": {
-                    "type": "string"
-                },
-                "approved_by": {
-                    "type": "integer"
-                },
-                "approver": {
+                "admin": {
                     "$ref": "#/definitions/model.User"
+                },
+                "admin_id": {
+                    "type": "integer"
                 },
                 "available_stock": {
                     "type": "integer"
@@ -2992,7 +2292,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "condition": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.GameCondition"
                 },
                 "created_at": {
                     "type": "string"
@@ -3015,21 +2315,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "partner": {
-                    "description": "Relationships",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.User"
-                        }
-                    ]
-                },
-                "partner_id": {
-                    "type": "integer"
-                },
                 "platform": {
-                    "type": "string"
-                },
-                "rejection_reason": {
                     "type": "string"
                 },
                 "rental_price_per_day": {
@@ -3039,13 +2325,25 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "stock": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
+        },
+        "model.GameCondition": {
+            "type": "string",
+            "enum": [
+                "excellent",
+                "good",
+                "fair"
+            ],
+            "x-enum-varnames": [
+                "ConditionExcellent",
+                "ConditionGood",
+                "ConditionFair"
+            ]
         },
         "model.Payment": {
             "type": "object",
@@ -3121,17 +2419,9 @@ const docTemplate = `{
         },
         "model.Review": {
             "type": "object",
-            "required": [
-                "rating"
-            ],
             "properties": {
                 "booking": {
-                    "description": "Relationships",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/model.Booking"
-                        }
-                    ]
+                    "$ref": "#/definitions/model.Booking"
                 },
                 "booking_id": {
                     "type": "integer"
@@ -3142,9 +2432,6 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "game": {
-                    "$ref": "#/definitions/model.Game"
-                },
                 "game_id": {
                     "type": "integer"
                 },
@@ -3152,9 +2439,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "rating": {
-                    "type": "integer",
-                    "maximum": 5,
-                    "minimum": 1
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
@@ -3207,13 +2492,11 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "customer",
-                "partner",
                 "admin",
                 "super_admin"
             ],
             "x-enum-varnames": [
                 "RoleCustomer",
-                "RolePartner",
                 "RoleAdmin",
                 "RoleSuperAdmin"
             ]

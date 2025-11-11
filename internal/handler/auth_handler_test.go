@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/yoockh/go-game-rental-api/internal/model"
 )
 
 // ============= MOCK USER SERVICE =============

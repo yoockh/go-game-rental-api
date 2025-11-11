@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
+	"github.com/yoockh/go-game-rental-api/internal/model"
 	"gorm.io/gorm"
 )
 

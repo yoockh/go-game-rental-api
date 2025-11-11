@@ -3,14 +3,14 @@ package handler
 import (
 	"fmt"
 
-	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
-	"github.com/Yoochan45/go-game-rental-api/internal/dto"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository/email"
-	"github.com/Yoochan45/go-game-rental-api/internal/service"
-	"github.com/Yoochan45/go-game-rental-api/internal/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+	myResponse "github.com/yoockh/go-api-utils/pkg-echo/response"
+	"github.com/yoockh/go-game-rental-api/internal/dto"
+	"github.com/yoockh/go-game-rental-api/internal/repository/email"
+	"github.com/yoockh/go-game-rental-api/internal/service"
+	"github.com/yoockh/go-game-rental-api/internal/utils"
 )
 
 type AuthHandler struct {

@@ -1,9 +1,9 @@
 package router
 
 import (
-	myMiddleware "github.com/Yoochan45/go-api-utils/pkg-echo/middleware"
-	"github.com/Yoochan45/go-game-rental-api/internal/handler"
 	"github.com/labstack/echo/v4"
+	myMiddleware "github.com/yoockh/go-api-utils/pkg-echo/middleware"
+	"github.com/yoockh/go-game-rental-api/internal/handler"
 )
 
 func RegisterRoutes(

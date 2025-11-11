@@ -1,15 +1,15 @@
 package handler
 
 import (
-	echomw "github.com/Yoochan45/go-api-utils/pkg-echo/middleware"
-	myRequest "github.com/Yoochan45/go-api-utils/pkg-echo/request"
-	myResponse "github.com/Yoochan45/go-api-utils/pkg-echo/response"
-	"github.com/Yoochan45/go-game-rental-api/internal/dto"
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/Yoochan45/go-game-rental-api/internal/service"
-	"github.com/Yoochan45/go-game-rental-api/internal/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	echomw "github.com/yoockh/go-api-utils/pkg-echo/middleware"
+	myRequest "github.com/yoockh/go-api-utils/pkg-echo/request"
+	myResponse "github.com/yoockh/go-api-utils/pkg-echo/response"
+	"github.com/yoockh/go-game-rental-api/internal/dto"
+	"github.com/yoockh/go-game-rental-api/internal/model"
+	"github.com/yoockh/go-game-rental-api/internal/service"
+	"github.com/yoockh/go-game-rental-api/internal/utils"
 )
 
 type ReviewHandler struct {

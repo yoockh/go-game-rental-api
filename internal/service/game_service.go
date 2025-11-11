@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository"
+	"github.com/yoockh/go-game-rental-api/internal/model"
+	"github.com/yoockh/go-game-rental-api/internal/repository"
 )
 
 var (

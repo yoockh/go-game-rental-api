@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
+	"github.com/yoockh/go-game-rental-api/internal/model"
 )
 
 type RegisterRequest struct {
@@ -28,5 +28,3 @@ type LoginResponse struct {
 type ResendVerificationRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
-
-

@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/Yoochan45/go-game-rental-api/internal/model"
+import "github.com/yoockh/go-game-rental-api/internal/model"
 
 type UpdateProfileRequest struct {
 	FullName string `json:"full_name" validate:"required,min=2"`

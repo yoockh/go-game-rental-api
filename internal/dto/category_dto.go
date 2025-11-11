@@ -1,8 +1,6 @@
 package dto
 
-import (
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
-)
+import "github.com/yoockh/go-game-rental-api/internal/model"
 
 type CategoryDTO struct {
 	ID          uint    `json:"id"`

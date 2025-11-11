@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository/email"
 	"github.com/sirupsen/logrus"
+	"github.com/yoockh/go-game-rental-api/internal/model"
+	"github.com/yoockh/go-game-rental-api/internal/repository"
+	"github.com/yoockh/go-game-rental-api/internal/repository/email"
 )
 
 var (

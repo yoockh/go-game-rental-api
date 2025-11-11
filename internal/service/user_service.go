@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Yoochan45/go-api-utils/pkg-echo/auth"
-	"github.com/Yoochan45/go-game-rental-api/internal/dto"
-	"github.com/Yoochan45/go-game-rental-api/internal/model"
-	"github.com/Yoochan45/go-game-rental-api/internal/repository"
-	"github.com/Yoochan45/go-game-rental-api/internal/utils"
+	"github.com/yoockh/go-api-utils/pkg-echo/auth"
+	"github.com/yoockh/go-game-rental-api/internal/dto"
+	"github.com/yoockh/go-game-rental-api/internal/model"
+	"github.com/yoockh/go-game-rental-api/internal/repository"
+	"github.com/yoockh/go-game-rental-api/internal/utils"
 )
 
 var (

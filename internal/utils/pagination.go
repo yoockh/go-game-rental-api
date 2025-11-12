@@ -1,8 +1,8 @@
 package utils
 
 import (
-	myRequest "github.com/Yoochan45/go-api-utils/pkg-echo/request"
 	"github.com/labstack/echo/v4"
+	myRequest "github.com/yoockh/go-api-utils/pkg-echo/request"
 )
 
 type PaginationParams struct {
